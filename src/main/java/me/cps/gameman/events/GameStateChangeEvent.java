@@ -1,4 +1,4 @@
-package me.cps.gameman;
+package me.cps.gameman.events;
 
 /*
 Hi there! Pls no stealing, unless you were given express
@@ -12,15 +12,15 @@ import org.bukkit.event.HandlerList;
 
 public class GameStateChangeEvent extends Event {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
     @Override
     public HandlerList getHandlers() {
-        return null;
+        return handlers;
     }
 
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
 }

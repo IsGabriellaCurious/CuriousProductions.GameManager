@@ -15,6 +15,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
+
 public abstract class cpsGame implements Listener {
 
     private JavaPlugin plugin;
@@ -28,9 +30,12 @@ public abstract class cpsGame implements Listener {
     private int maxPlayers;
     private boolean forceMax; //must the game be full to start
 
-    private GameKit defaultKit;
+    private String defaultKit;
+    private HashMap<String, GameKit> kitNames = new HashMap<>();
 
-    public cpsGame(JavaPlugin plugin, String gameName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, GameKit defaultKit) {
+    private String startBarMessage = "The game will start in";
+
+    public cpsGame(JavaPlugin plugin, String gameName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit) {
         Message.console("§aGame file is being initialized!");
         this.plugin = plugin;
         this.gameName = gameName;
@@ -40,16 +45,18 @@ public abstract class cpsGame implements Listener {
         this.maxPlayers = maxPlayers;
         this.forceMax = forceMax;
         this.defaultKit = defaultKit;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         Message.console("§aDone!");
     }
 
-    private void addKit(GameKit kit) {
+    public void addKit(GameKit kit) {
         GameManager.getInstance().getAvailableKits().add(kit);
+        kitNames.put(kit.getName(), kit);
     }
 
     public abstract void addKits();
 
-    private void addTeam(String name, ChatColor color) {
+    public void addTeam(String name, ChatColor color) {
         GameManager.getInstance().getTeamNames().put(color, name);
     }
 
@@ -62,7 +69,12 @@ public abstract class cpsGame implements Listener {
 
     public abstract void assignTeams();
 
+    public abstract void giveKitItems(); //MUST BE RUN INSIDE OF startGame()
+
     public abstract void giveGameRewards();
+
+    public abstract void handlePlayerQuit();
+
 
     @EventHandler
     public void onUpdate(PerMilliEvent event) {
@@ -103,7 +115,28 @@ public abstract class cpsGame implements Listener {
         return forceMax;
     }
 
-    public GameKit getDefaultKit() {
+    public String getDefaultKit() {
         return defaultKit;
     }
+
+    public HashMap<String, GameKit> getKitNames() {
+        return kitNames;
+    }
+
+    public String getStartBarMessage() {
+        return startBarMessage;
+    }
+
+    public void setStartBarMessage(String startBarMessage) {
+        this.startBarMessage = startBarMessage;
+    }
+
+    //Now the methods
+
+    public void endGame() {
+        GameManager.getInstance().setGameState(GameState.ENDING);
+        //run the end runnable
+    }
+
+    public abstract void announceWinner(Player player, ChatColor color);
 }

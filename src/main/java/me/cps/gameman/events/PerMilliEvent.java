@@ -21,15 +21,15 @@ this is so you can check for things like state changes to check for a game to en
 
 public class PerMilliEvent extends Event {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
     @Override
     public HandlerList getHandlers() {
-        return null;
+        return handlers;
     }
 
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
 }

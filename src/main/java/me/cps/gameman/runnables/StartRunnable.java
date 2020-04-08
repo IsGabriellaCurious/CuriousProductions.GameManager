@@ -1,0 +1,93 @@
+package me.cps.gameman.runnables;
+
+/*
+Hi there! Pls no stealing, unless you were given express
+permission to read this. if not, fuck off :)
+
+Copyright (c) IsGeorgeCurious 2020
+*/
+
+import me.cps.gameman.GameManager;
+import me.cps.gameman.GameState;
+import me.cps.root.util.ActionBar;
+import me.cps.root.util.Message;
+import me.cps.root.util.PlaySound;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
+import org.bukkit.scheduler.BukkitRunnable;
+
+public class StartRunnable extends BukkitRunnable {
+
+    String message;
+    boolean cancel;
+
+    boolean almost;
+    boolean full;
+
+    public StartRunnable(int timet, String message) {
+        GameManager.getInstance().gameStartTimer = timet;
+        this.message = message;
+        cancel = false;
+        almost = false;
+        full = false;
+    }
+
+    @Override
+    public void run() {
+
+        if (GameManager.getInstance().getGameState() == GameState.LIVE) {
+            cancel();
+            return;
+        }
+
+        if (GameManager.getInstance().getCurrentGame().getMinPlayers() > GameManager.getInstance().getLivePlayers().size()) {
+            ActionBar.all("§c§lCanceled! Waiting for players...");
+            Message.broadcast("§c§lCanceled! Waiting for players...");
+            PlaySound.all(Sound.ENDERDRAGON_GROWL, 100, 1);
+            almost = false;
+            full = false;
+            cancel();
+            return;
+        }
+
+        if (GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMaxPlayers()-3 && !(GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMaxPlayers())) {
+            if (!almost) {
+                Message.broadcast("§aWe almost have a full server! Shortening timer to 30 seconds!");
+                GameManager.getInstance().gameStartTimer = 31;
+                almost = true;
+            }
+        }
+
+        if (GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMaxPlayers()) {
+            if (!full) {
+                Message.broadcast("§aWe have a full server! Starting in 10 seconds!");
+                GameManager.getInstance().gameStartTimer = 100; //todo change back
+                full = true;
+            }
+
+        }
+
+        GameManager.getInstance().gameStartTimer -= 1;
+
+        if (GameManager.getInstance().gameStartTimer == 0) {
+            GameManager.getInstance().getCurrentGame().startGame();
+            GameManager.getInstance().setGameState(GameState.LIVE);
+            cancel();
+            return;
+        }
+
+        if (GameManager.getInstance().gameStartTimer > 5)
+            ActionBar.all(ChatColor.YELLOW + "" + ChatColor.BOLD + message + " " + ChatColor.GREEN + GameManager.getInstance().gameStartTimer + "" + ChatColor.YELLOW + ChatColor.BOLD + " seconds");
+        else
+            if (GameManager.getInstance().gameStartTimer <= 5)
+                PlaySound.all(Sound.NOTE_STICKS, 100, 1);
+            if (GameManager.getInstance().gameStartTimer <= 3)
+                PlaySound.all(Sound.ORB_PICKUP, 100, 1);
+
+            if (GameManager.getInstance().gameStartTimer == 1)
+                ActionBar.all(ChatColor.GREEN + "" + ChatColor.BOLD + message + " " + ChatColor.RED + GameManager.getInstance().gameStartTimer + "" + ChatColor.GREEN + ChatColor.BOLD + " second");
+            else if (GameManager.getInstance().gameStartTimer <=5)
+                ActionBar.all(ChatColor.GREEN + "" + ChatColor.BOLD + message + " " + ChatColor.RED + GameManager.getInstance().gameStartTimer + "" + ChatColor.GREEN + ChatColor.BOLD + " seconds");
+    }
+}
