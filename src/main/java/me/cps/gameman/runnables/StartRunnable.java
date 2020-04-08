@@ -47,6 +47,7 @@ public class StartRunnable extends BukkitRunnable {
             PlaySound.all(Sound.ENDERDRAGON_GROWL, 100, 1);
             almost = false;
             full = false;
+            GameManager.getInstance().startWaiting();
             cancel();
             return;
         }

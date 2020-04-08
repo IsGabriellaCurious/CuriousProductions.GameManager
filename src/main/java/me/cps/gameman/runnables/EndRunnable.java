@@ -64,14 +64,6 @@ public class EndRunnable extends BukkitRunnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-            p.kickPlayer(" ");
-        }
-        try {
-            TimeUnit.SECONDS.sleep(2);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         Bukkit.getServer().shutdown();
     }
 }

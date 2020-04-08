@@ -7,12 +7,16 @@ permission to read this. if not, fuck off :)
 Copyright (c) IsGeorgeCurious 2020
 */
 
+import de.dytanic.cloudnet.CloudNet;
+import de.dytanic.cloudnet.wrapper.Wrapper;
 import me.cps.gameman.commands.StartCommand;
 import me.cps.gameman.events.GameStateChangeEvent;
 import me.cps.gameman.events.PerMilliRunnable;
 import me.cps.gameman.runnables.StartRunnable;
+import me.cps.gameman.runnables.WaitingRunnable;
 import me.cps.root.Rank;
 import me.cps.root.cpsModule;
+import me.cps.root.proxy.ProxyManager;
 import me.cps.root.util.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -23,6 +27,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -146,7 +151,13 @@ public class GameManager extends cpsModule {
         Message.console("§aI think we are ready to rumble!");
         Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(getPlugin(), new PerMilliRunnable(getPlugin()), 0, 1);
         setGameState(GameState.WAITING);
+        startWaiting();
     }
+
+    public void startWaiting() {
+        new WaitingRunnable().runTaskTimerAsynchronously(getPlugin(), 0, 10);
+    }
+
 
     @EventHandler
     public void playerPreJoin(AsyncPlayerPreLoginEvent event) {
@@ -167,7 +178,9 @@ public class GameManager extends cpsModule {
                     Random random = new Random();
 
                     Player toKick = getDefaultPlayers().get(random.nextInt(getDefaultPlayers().size()));
-                    toKick.kickPlayer("§c§lYou have been kicked to make room for a §d§lPREMIUM Player§r\n§eBuy a rank today to join full lobbies and secure your place in a game!");
+                    ProxyManager.getInstance().sendToLobby(toKick, false);
+                    ProxyManager.getInstance().sendPlayerMessage(toKick, "§c§lYou have been kicked to make room for a §d§lPREMIUM Player§r\n§eBuy a rank today to join full lobbies and secure your place in a game!");
+                    //toKick.kickPlayer("§c§lYou have been kicked to make room for a §d§lPREMIUM Player§r\n§eBuy a rank today to join full lobbies and secure your place in a game!");
                     event.allow();
                 }
             } else {
@@ -184,7 +197,7 @@ public class GameManager extends cpsModule {
             getDefaultPlayers().add(event.getPlayer());
 
         event.setJoinMessage("");
-        getPlugin().getServer().broadcastMessage(Rank.getRank(event.getPlayer().getUniqueId()).getColor() + event.getPlayer().getName() + " §6has joined the game.");
+        getPlugin().getServer().broadcastMessage(Rank.getRank(event.getPlayer().getUniqueId()).getColor() + event.getPlayer().getName() + " §7has joined the game.");
         if (getLivePlayers().size() == getCurrentGame().getMinPlayers()) {
             getPlugin().getServer().broadcastMessage("§e§lWe have reached the minimum amount of player's required start!");
             new StartRunnable(60, getCurrentGame().getStartBarMessage()).runTaskTimerAsynchronously(getPlugin(), 0 , 20);

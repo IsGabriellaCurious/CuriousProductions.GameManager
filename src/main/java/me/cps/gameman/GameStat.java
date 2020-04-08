@@ -7,5 +7,5 @@ permission to read this. if not, fuck off :)
 Copyright (c) IsGeorgeCurious 2020
 */
 
-public class GameStat {
+public abstract class GameStat {
 }
