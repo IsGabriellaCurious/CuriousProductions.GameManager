@@ -84,6 +84,8 @@ public class GameManager extends cpsModule {
         Bukkit.getPluginManager().callEvent(event);
         this.gameState = gameState;
         Message.console("GAME STATE UPDATE: " + gameState.toString());
+        if (gameState == GameState.LIVE)
+            Message.console("Live players: " + getLivePlayers().toString());
     }
 
     public cpsGame getCurrentGame() {
@@ -212,7 +214,7 @@ public class GameManager extends cpsModule {
             getDefaultPlayers().remove(event.getPlayer());
 
         if (getGameState() == GameState.LIVE)
-            getCurrentGame().handlePlayerQuit();
+            getCurrentGame().handlePlayerQuit(event.getPlayer());
 
         getLivePlayers().remove(event.getPlayer());
 
@@ -239,11 +241,15 @@ public class GameManager extends cpsModule {
 
     @EventHandler
     public void scoreboardMilli(PerMilliEvent event) {
-        if (getGameState() != GameState.WAITING)
-            return;
-
-        for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-            lobbyScoreboard(p);
+        if (getGameState() == GameState.WAITING) {
+            for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+                lobbyScoreboard(p);
+            }
+        }
+        if (getGameState() == GameState.LIVE) {
+            for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+                getCurrentGame().scoreboard(p);
+            }
         }
     }
 }

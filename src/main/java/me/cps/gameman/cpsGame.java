@@ -7,6 +7,7 @@ permission to read this. if not, fuck off :)
 Copyright (c) IsGeorgeCurious 2020
 */
 
+import me.cps.gameman.runnables.EndRunnable;
 import me.cps.root.util.PerMilliEvent;
 import me.cps.root.util.Message;
 import org.bukkit.ChatColor;
@@ -75,7 +76,11 @@ public abstract class cpsGame implements Listener {
 
     public abstract void giveGameRewards();
 
-    public abstract void handlePlayerQuit();
+    public abstract void handlePlayerQuit(Player player);
+
+    public abstract void scoreboard(Player player);
+
+
 
 
     @EventHandler
@@ -143,9 +148,9 @@ public abstract class cpsGame implements Listener {
 
     //Now the methods
 
-    public void endGame() {
+    public void endGame(Player pWinner, ChatColor cWinner) {
         GameManager.getInstance().setGameState(GameState.ENDING);
-        //run the end runnable
+        new EndRunnable(pWinner, cWinner).runTaskAsynchronously(plugin);
     }
 
     public abstract void announceWinner(Player player, ChatColor color);

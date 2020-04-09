@@ -10,6 +10,7 @@ Copyright (c) IsGeorgeCurious 2020
 import me.cps.gameman.GameManager;
 import me.cps.gameman.GameState;
 import me.cps.root.Rank;
+import me.cps.root.proxy.ProxyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -30,11 +31,10 @@ public class EndRunnable extends BukkitRunnable {
 
     @Override
     public void run() {
-        GameManager.getInstance().setGameState(GameState.ENDING);
         if (pWinner == null)
-            GameManager.getInstance().getCurrentGame().announceWinner(pWinner, null);
-        else
             GameManager.getInstance().getCurrentGame().announceWinner(null, cWinner);
+        else
+            GameManager.getInstance().getCurrentGame().announceWinner(pWinner, null);
         try {
             TimeUnit.SECONDS.sleep(5);
         } catch (Exception e) {
@@ -61,6 +61,16 @@ public class EndRunnable extends BukkitRunnable {
         }
         try {
             TimeUnit.SECONDS.sleep(10);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+            ProxyManager.getInstance().sendToLobby(p, false);
+        }
+
+        try {
+            TimeUnit.SECONDS.sleep(3);
         } catch (Exception e) {
             e.printStackTrace();
         }
