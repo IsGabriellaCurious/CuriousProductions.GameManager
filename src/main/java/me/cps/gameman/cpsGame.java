@@ -8,6 +8,8 @@ Copyright (c) IsGeorgeCurious 2020
 */
 
 import me.cps.gameman.runnables.EndRunnable;
+import me.cps.gameman.stat.GameStat;
+import me.cps.gameman.stat.StatManager;
 import me.cps.root.util.PerMilliEvent;
 import me.cps.root.util.Message;
 import org.bukkit.ChatColor;
@@ -24,6 +26,7 @@ public abstract class cpsGame implements Listener {
 
     private String gameName;
     private String scoreName;
+    private String mysqlName;
 
     private boolean respawn;
     private int respawnTimer;
@@ -37,10 +40,11 @@ public abstract class cpsGame implements Listener {
 
     private String startBarMessage = "The game will start in";
 
-    public cpsGame(JavaPlugin plugin, String gameName, String scoreName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit) {
+    public cpsGame(JavaPlugin plugin, String gameName, String scoreName, String mysqlName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit) {
         Message.console("§aGame file is being initialized!");
         this.plugin = plugin;
         this.gameName = gameName;
+        this.mysqlName = mysqlName;
         this.scoreName = scoreName;
         this.respawn = respawn;
         this.respawnTimer = respawnTimer;
@@ -64,6 +68,13 @@ public abstract class cpsGame implements Listener {
     }
 
     public abstract void addTeams();
+
+    public void addStat(GameStat stat) {
+        StatManager.getInstance().registerStat(stat);
+
+    }
+
+    public abstract void addStats();
 
     //all kits, teleports, runnables, etc should be started here.
     public abstract void startGame();
@@ -100,6 +111,10 @@ public abstract class cpsGame implements Listener {
 
     public String getScoreName() {
         return scoreName;
+    }
+
+    public String getMysqlName() {
+        return mysqlName;
     }
 
     public void setScoreName(String scoreName) {

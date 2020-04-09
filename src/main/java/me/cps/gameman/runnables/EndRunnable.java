@@ -9,6 +9,7 @@ Copyright (c) IsGeorgeCurious 2020
 
 import me.cps.gameman.GameManager;
 import me.cps.gameman.GameState;
+import me.cps.gameman.stat.StatManager;
 import me.cps.root.Rank;
 import me.cps.root.proxy.ProxyManager;
 import org.bukkit.Bukkit;
@@ -59,6 +60,7 @@ public class EndRunnable extends BukkitRunnable {
             }
             p.sendMessage("§7§lGoing to the Hub in 10 seconds...");
         }
+        GameManager.getInstance().getCurrentGame().giveGameRewards();
         try {
             TimeUnit.SECONDS.sleep(10);
         } catch (Exception e) {
@@ -74,6 +76,6 @@ public class EndRunnable extends BukkitRunnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Bukkit.getServer().shutdown();
+        StatManager.getInstance().pushStats(true);
     }
 }

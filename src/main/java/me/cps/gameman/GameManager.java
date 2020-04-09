@@ -9,6 +9,9 @@ Copyright (c) IsGeorgeCurious 2020
 
 import me.cps.gameman.commands.StartCommand;
 import me.cps.gameman.events.GameStateChangeEvent;
+import me.cps.gameman.stat.GameStat;
+import me.cps.gameman.stat.PlayerStat;
+import me.cps.gameman.stat.StatManager;
 import me.cps.root.scoreboard.ScoreboardCentre;
 import me.cps.root.scoreboard.cpsScoreboard;
 import me.cps.root.util.PerMilliEvent;
@@ -23,6 +26,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -47,7 +51,6 @@ public class GameManager extends cpsModule {
     private ArrayList<Player> defaultPlayers = new ArrayList<>();
 
     private ArrayList<GameKit> availableKits = new ArrayList<>();
-    private ArrayList<GameStat> availableStat = new ArrayList<>();
 
     private HashMap<Player, GameKit> playerKit = new HashMap<>();
 
@@ -121,9 +124,6 @@ public class GameManager extends cpsModule {
         return availableKits;
     }
 
-    public ArrayList<GameStat> getAvailableStat() {
-        return availableStat;
-    }
 
     public boolean isResPack() {
         return resPack;
@@ -150,6 +150,7 @@ public class GameManager extends cpsModule {
         Message.console("§aOooooh now the fun is starting! Loading game " + getCurrentGame().getGameName());
         getCurrentGame().addKits();
         getCurrentGame().addTeams();
+        getCurrentGame().addStats();
         Message.console("§aI think we are ready to rumble!");
         //Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(getPlugin(), new PerMilliRunnable(getPlugin()), 0, 1);
         setGameState(GameState.WAITING);
@@ -191,7 +192,7 @@ public class GameManager extends cpsModule {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void playerJoinEvent(PlayerJoinEvent event) {
         getLivePlayers().add(event.getPlayer());
         if (getGameState() == GameState.WAITING)
@@ -229,6 +230,12 @@ public class GameManager extends cpsModule {
 
         s.setTitle(getCurrentGame().getScoreName());
         s.clear();
+        s.addEmpty();
+        s.add("§a§lYour Stats");
+        for (GameStat stat : StatManager.getInstance().getAvailableStat().values()) {
+            PlayerStat playerStat = StatManager.getInstance().getPlayerStat(player);
+            s.add("§b" + stat.getDisplayName() + ": §f" + playerStat.getStat(stat));
+        }
         s.addEmpty();
         s.add("§e§lPlayers");
         s.add("" + getLivePlayers().size() + "/" + getCurrentGame().getMaxPlayers());
