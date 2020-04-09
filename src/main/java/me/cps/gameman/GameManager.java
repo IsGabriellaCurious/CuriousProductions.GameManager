@@ -7,11 +7,12 @@ permission to read this. if not, fuck off :)
 Copyright (c) IsGeorgeCurious 2020
 */
 
-import de.dytanic.cloudnet.CloudNet;
-import de.dytanic.cloudnet.wrapper.Wrapper;
 import me.cps.gameman.commands.StartCommand;
 import me.cps.gameman.events.GameStateChangeEvent;
-import me.cps.gameman.events.PerMilliRunnable;
+import me.cps.root.scoreboard.ScoreboardCentre;
+import me.cps.root.scoreboard.cpsScoreboard;
+import me.cps.root.util.PerMilliEvent;
+import me.cps.root.util.PerMilliRunnable;
 import me.cps.gameman.runnables.StartRunnable;
 import me.cps.gameman.runnables.WaitingRunnable;
 import me.cps.root.Rank;
@@ -27,7 +28,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -149,7 +149,7 @@ public class GameManager extends cpsModule {
         getCurrentGame().addKits();
         getCurrentGame().addTeams();
         Message.console("§aI think we are ready to rumble!");
-        Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(getPlugin(), new PerMilliRunnable(getPlugin()), 0, 1);
+        //Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(getPlugin(), new PerMilliRunnable(getPlugin()), 0, 1);
         setGameState(GameState.WAITING);
         startWaiting();
     }
@@ -192,6 +192,8 @@ public class GameManager extends cpsModule {
     @EventHandler
     public void playerJoinEvent(PlayerJoinEvent event) {
         getLivePlayers().add(event.getPlayer());
+        if (getGameState() == GameState.WAITING)
+            lobbyScoreboard(event.getPlayer());
 
         if (Rank.getRank(event.getPlayer().getUniqueId()) == Rank.DEFAULT)
             getDefaultPlayers().add(event.getPlayer());
@@ -215,5 +217,33 @@ public class GameManager extends cpsModule {
         getLivePlayers().remove(event.getPlayer());
 
         event.setQuitMessage("");
+    }
+
+
+    //scoreboard shit
+
+    private void lobbyScoreboard(Player player) {
+        cpsScoreboard s = ScoreboardCentre.getInstance().getScoreboards().get(player);
+
+        s.setTitle(getCurrentGame().getScoreName());
+        s.clear();
+        s.addEmpty();
+        s.add("§e§lPlayers");
+        s.add("" + getLivePlayers().size() + "/" + getCurrentGame().getMaxPlayers());
+        s.addEmpty();
+        s.add("§8----------");
+        s.add("§bplay.CPS.me");
+
+        s.apply();
+    }
+
+    @EventHandler
+    public void scoreboardMilli(PerMilliEvent event) {
+        if (getGameState() != GameState.WAITING)
+            return;
+
+        for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+            lobbyScoreboard(p);
+        }
     }
 }

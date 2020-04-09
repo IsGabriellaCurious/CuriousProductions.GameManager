@@ -7,7 +7,7 @@ permission to read this. if not, fuck off :)
 Copyright (c) IsGeorgeCurious 2020
 */
 
-import me.cps.gameman.events.PerMilliEvent;
+import me.cps.root.util.PerMilliEvent;
 import me.cps.root.util.Message;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -22,6 +22,7 @@ public abstract class cpsGame implements Listener {
     private JavaPlugin plugin;
 
     private String gameName;
+    private String scoreName;
 
     private boolean respawn;
     private int respawnTimer;
@@ -35,10 +36,11 @@ public abstract class cpsGame implements Listener {
 
     private String startBarMessage = "The game will start in";
 
-    public cpsGame(JavaPlugin plugin, String gameName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit) {
+    public cpsGame(JavaPlugin plugin, String gameName, String scoreName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit) {
         Message.console("§aGame file is being initialized!");
         this.plugin = plugin;
         this.gameName = gameName;
+        this.scoreName = scoreName;
         this.respawn = respawn;
         this.respawnTimer = respawnTimer;
         this.minPlayers = minPlayers;
@@ -89,6 +91,14 @@ public abstract class cpsGame implements Listener {
 
     public String getGameName() {
         return gameName;
+    }
+
+    public String getScoreName() {
+        return scoreName;
+    }
+
+    public void setScoreName(String scoreName) {
+        this.scoreName = scoreName;
     }
 
     public JavaPlugin getPlugin() {
