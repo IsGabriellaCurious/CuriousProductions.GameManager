@@ -18,6 +18,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -36,7 +37,7 @@ public class StatManager extends cpsModule {
     private HashMap<Player, PlayerStat> stat = new HashMap<>();
 
     public StatManager(JavaPlugin plugin) {
-        super("[GM] Stat Manager", plugin, "1.0-alpha", true);
+        super("[GM] Stat Manager", plugin, "1.1", true);
         instance = this;
         registerSelf();
     }
@@ -102,16 +103,16 @@ public class StatManager extends cpsModule {
 
     public void sqlSetStat(UUID uuid, String name, int prev, int amount) {
         try {
-            AccountHub.getInstance().openConnection();
+            Connection connection = AccountHub.getInstance().createConnection();
 
-            PreparedStatement statement = AccountHub.getInstance().getConnection().prepareStatement("UPDATE `game." + GameManager.getInstance().getCurrentGame().getMysqlName() + "` SET " + name + "=? WHERE uuid=?");
+            PreparedStatement statement = connection.prepareStatement("UPDATE `game." + GameManager.getInstance().getCurrentGame().getMysqlName() + "` SET " + name + "=? WHERE uuid=?");
             int next = prev + amount;
             statement.setInt(1, next);
             statement.setString(2, uuid.toString());
 
             statement.executeUpdate();
 
-            AccountHub.getInstance().getConnection().close();
+            connection.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -119,14 +120,14 @@ public class StatManager extends cpsModule {
 
     public void createPlayer(UUID uuid) {
         try {
-            AccountHub.getInstance().openConnection();
+            Connection connection = AccountHub.getInstance().createConnection();
 
-            PreparedStatement statement = AccountHub.getInstance().getConnection().prepareStatement("INSERT INTO `game." + GameManager.getInstance().getCurrentGame().getMysqlName() +"` (uuid) VALUE (?)");
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO `game." + GameManager.getInstance().getCurrentGame().getMysqlName() +"` (uuid) VALUE (?)");
             statement.setString(1, uuid.toString());
 
             statement.executeUpdate();
 
-            AccountHub.getInstance().getConnection().close();
+            connection.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -134,13 +135,13 @@ public class StatManager extends cpsModule {
 
     public boolean playerExists(UUID uuid) {
         try {
-            AccountHub.getInstance().openConnection();
+            Connection connection = AccountHub.getInstance().createConnection();
 
-            PreparedStatement statement = AccountHub.getInstance().getConnection().prepareStatement("SELECT * FROM `game." + GameManager.getInstance().getCurrentGame().getMysqlName() +"` WHERE uuid=?");
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM `game." + GameManager.getInstance().getCurrentGame().getMysqlName() +"` WHERE uuid=?");
             statement.setString(1, uuid.toString());
             ResultSet resultSet = statement.executeQuery();
             boolean exists = resultSet.next();
-            AccountHub.getInstance().getConnection().close();
+            connection.close();
             return exists;
         } catch (Exception e) {
             e.printStackTrace();
@@ -150,9 +151,9 @@ public class StatManager extends cpsModule {
 
     public int getCurrentStat(UUID uuid, GameStat stat) {
         try {
-            AccountHub.getInstance().openConnection();
+            Connection connection = AccountHub.getInstance().createConnection();
 
-            PreparedStatement statement = AccountHub.getInstance().getConnection().prepareStatement("SELECT `" + stat.getMysqlColumnName() + "` FROM `game." + GameManager.getInstance().getCurrentGame().getMysqlName() + "` WHERE uuid=?");
+            PreparedStatement statement = connection.prepareStatement("SELECT `" + stat.getMysqlColumnName() + "` FROM `game." + GameManager.getInstance().getCurrentGame().getMysqlName() + "` WHERE uuid=?");
             statement.setString(1, uuid.toString());
             statement.executeQuery();
 
@@ -163,7 +164,7 @@ public class StatManager extends cpsModule {
                 num = resultSet.getInt(stat.getMysqlColumnName());
             else
                 num = -1;
-            AccountHub.getInstance().getConnection().close();
+            connection.close();
             return num;
 
 
