@@ -7,6 +7,8 @@ permission to read this. if not, fuck off :)
 Copyright (c) IsGeorgeCurious 2020
 */
 
+import de.dytanic.cloudnet.driver.service.ServiceId;
+import de.dytanic.cloudnet.wrapper.Wrapper;
 import me.cps.gameman.commands.StartCommand;
 import me.cps.gameman.events.GameStateChangeEvent;
 import me.cps.gameman.runnables.SpectatorRunnable;
@@ -63,11 +65,16 @@ public class GameManager extends cpsModule {
     private boolean resPack = false;
     private boolean packRequired = false;
 
+    private ServiceId serviceId = Wrapper.getInstance().getServiceId();
+
+    public static String serverName;
+
     public GameManager(JavaPlugin plugin, cpsGame game) {
         super("Game Manager", plugin, "1.3", true);
         instance = this;
         registerSelf();
         this.currentGame = game;
+        serverName = serviceId.getName();
         setGameState(GameState.LOADING);
 
         setupGame();
@@ -273,6 +280,9 @@ public class GameManager extends cpsModule {
         s.addEmpty();
         s.add("§e§lPlayers");
         s.add("" + getLivePlayers().size() + "/" + getCurrentGame().getMaxPlayers());
+        s.addEmpty();
+        s.add("§b§lServer");
+        s.add("" + serverName);
         s.addEmpty();
         s.add("§8----------");
         s.add("§bplay.CPS.me");
