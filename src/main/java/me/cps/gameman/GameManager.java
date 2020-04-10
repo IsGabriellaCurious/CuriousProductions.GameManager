@@ -9,6 +9,7 @@ Copyright (c) IsGeorgeCurious 2020
 
 import me.cps.gameman.commands.StartCommand;
 import me.cps.gameman.events.GameStateChangeEvent;
+import me.cps.gameman.runnables.SpectatorRunnable;
 import me.cps.gameman.stat.GameStat;
 import me.cps.gameman.stat.PlayerStat;
 import me.cps.gameman.stat.StatManager;
@@ -30,6 +31,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -45,6 +47,7 @@ public class GameManager extends cpsModule {
 
     private ArrayList<Player> livePlayers = new ArrayList<>();
     private ArrayList<Player> spectators = new ArrayList<>();
+    private ArrayList<Player> specAfterRespawn = new ArrayList<>();
     private HashMap<Player, ChatColor> playerTeams = new HashMap<>();
     private HashMap<ChatColor, String> teamNames = new HashMap<>();
 
@@ -61,7 +64,7 @@ public class GameManager extends cpsModule {
     private boolean packRequired = false;
 
     public GameManager(JavaPlugin plugin, cpsGame game) {
-        super("Game Manager", plugin, "1.0-alpha", true);
+        super("Game Manager", plugin, "1.3", true);
         instance = this;
         registerSelf();
         this.currentGame = game;
@@ -113,7 +116,8 @@ public class GameManager extends cpsModule {
 
     public void assignTeam(Player player, ChatColor colour) {
         getPlayerTeams().put(player, colour);
-        player.sendMessage(colour + "You have been put on the " + colour + "" + ChatColor.BOLD + getTeamNames().get(colour) + " Team!");
+        if (getCurrentGame().isTeamJoinMessage())
+            player.sendMessage(colour + "You have been put on the " + colour + "" + ChatColor.BOLD + getTeamNames().get(colour) + " Team!");
     }
 
     public HashMap<ChatColor, String> getTeamNames() {
@@ -161,6 +165,35 @@ public class GameManager extends cpsModule {
         new WaitingRunnable().runTaskTimerAsynchronously(getPlugin(), 0, 10);
     }
 
+    public void makeSpectator(Player player, boolean specAfterRespawn) {
+        if (specAfterRespawn) {
+            this.specAfterRespawn.add(player);
+            return;
+        }
+        getSpectators().add(player);
+        player.sendMessage("§7You are now a spectator.");
+        player.setAllowFlight(true);
+        player.setFlying(true);
+        player.setHealth(20);
+        player.setFoodLevel(20);
+        player.getInventory().clear();
+        for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+            p.hidePlayer(player);
+        }
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        if (specAfterRespawn.contains(event.getPlayer())) {
+            specAfterRespawn.remove(event.getPlayer());
+            makeSpectator(event.getPlayer(), false);
+        }
+    }
+
+    public void startSpecRun() {
+        new SpectatorRunnable().runTaskTimerAsynchronously(getPlugin(), 0, 20);
+    }
+
 
     @EventHandler
     public void playerPreJoin(AsyncPlayerPreLoginEvent event) {
@@ -195,6 +228,7 @@ public class GameManager extends cpsModule {
     @EventHandler(priority = EventPriority.HIGH)
     public void playerJoinEvent(PlayerJoinEvent event) {
         getLivePlayers().add(event.getPlayer());
+        Message.console(getLivePlayers().toString());
         if (getGameState() == GameState.WAITING)
             lobbyScoreboard(event.getPlayer());
 
@@ -204,7 +238,7 @@ public class GameManager extends cpsModule {
         event.setJoinMessage("");
         getPlugin().getServer().broadcastMessage(Rank.getRank(event.getPlayer().getUniqueId()).getColor() + event.getPlayer().getName() + " §7has joined the game.");
         if (getLivePlayers().size() == getCurrentGame().getMinPlayers()) {
-            getPlugin().getServer().broadcastMessage("§e§lWe have reached the minimum amount of player's required start!");
+            getPlugin().getServer().broadcastMessage("§eWe have reached the minimum amount of player's required start!");
             new StartRunnable(60, getCurrentGame().getStartBarMessage()).runTaskTimerAsynchronously(getPlugin(), 0 , 20);
         }
     }

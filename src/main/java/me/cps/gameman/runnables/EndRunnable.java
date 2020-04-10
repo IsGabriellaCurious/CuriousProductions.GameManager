@@ -36,6 +36,7 @@ public class EndRunnable extends BukkitRunnable {
             GameManager.getInstance().getCurrentGame().announceWinner(null, cWinner);
         else
             GameManager.getInstance().getCurrentGame().announceWinner(pWinner, null);
+        GameManager.getInstance().getCurrentGame().giveGameRewards(); //this is only awarding them in statman
         try {
             TimeUnit.SECONDS.sleep(5);
         } catch (Exception e) {
@@ -60,7 +61,6 @@ public class EndRunnable extends BukkitRunnable {
             }
             p.sendMessage("§7§lGoing to the Hub in 10 seconds...");
         }
-        GameManager.getInstance().getCurrentGame().giveGameRewards();
         try {
             TimeUnit.SECONDS.sleep(10);
         } catch (Exception e) {

@@ -12,9 +12,9 @@ import me.cps.gameman.GameState;
 import me.cps.root.util.ActionBar;
 import me.cps.root.util.Message;
 import me.cps.root.util.PlaySound;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class StartRunnable extends BukkitRunnable {
@@ -72,8 +72,13 @@ public class StartRunnable extends BukkitRunnable {
         GameManager.getInstance().gameStartTimer -= 1;
 
         if (GameManager.getInstance().gameStartTimer == 0) {
+            for (Player p : GameManager.getInstance().getLivePlayers()) {
+                p.setHealth(20);
+                p.setFoodLevel(20);
+            }
             GameManager.getInstance().getCurrentGame().startGame();
             GameManager.getInstance().setGameState(GameState.LIVE);
+            GameManager.getInstance().startSpecRun();
             cancel();
             return;
         }

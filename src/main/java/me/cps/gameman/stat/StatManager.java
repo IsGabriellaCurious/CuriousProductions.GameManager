@@ -85,7 +85,9 @@ public class StatManager extends cpsModule {
                 GameStat gameStat = entry.getKey();
                 int amount = entry.getValue();
 
-                int current = getCurrentStat(stat.getPlayer().getUniqueId(), getAvailableStat().get("Points"));
+                Message.console("Adding " + amount +" of " + gameStat.getDisplayName());
+
+                int current = getCurrentStat(stat.getPlayer().getUniqueId(), gameStat);
                 sqlSetStat(stat.getPlayer().getUniqueId(), gameStat.getMysqlColumnName(), current, amount);
             }
             Message.console("[STAT MANAGER] Player done!");

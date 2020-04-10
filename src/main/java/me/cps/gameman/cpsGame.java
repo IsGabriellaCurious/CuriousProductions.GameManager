@@ -38,9 +38,11 @@ public abstract class cpsGame implements Listener {
     private String defaultKit;
     private HashMap<String, GameKit> kitNames = new HashMap<>();
 
+    private boolean teamJoinMessage;
+
     private String startBarMessage = "The game will start in";
 
-    public cpsGame(JavaPlugin plugin, String gameName, String scoreName, String mysqlName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit) {
+    public cpsGame(JavaPlugin plugin, String gameName, String scoreName, String mysqlName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit, boolean teamJoinMessage) {
         Message.console("§aGame file is being initialized!");
         this.plugin = plugin;
         this.gameName = gameName;
@@ -52,6 +54,7 @@ public abstract class cpsGame implements Listener {
         this.maxPlayers = maxPlayers;
         this.forceMax = forceMax;
         this.defaultKit = defaultKit;
+        this.teamJoinMessage = teamJoinMessage;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         Message.console("§aDone!");
     }
@@ -61,38 +64,36 @@ public abstract class cpsGame implements Listener {
         kitNames.put(kit.getName(), kit);
     }
 
+    public abstract void addStats();
+
+    public abstract void addTeams();
+
+    public abstract void assignTeams(); //MUST BE RUN INSIDE OF startGame()
+
     public abstract void addKits();
+
+    public abstract void giveKitItems(); //MUST BE RUN INSIDE OF startGame()
+
+    public abstract void startGame(); //all kits, teleports, runnables, etc should be started here.
+
+    public abstract void scoreboard(Player player);
+
+    public abstract void handlePlayerQuit(Player player);
+
+    public abstract void endCheck();
+
+    public abstract void announceWinner(Player player, ChatColor color);
+
+    public abstract void giveGameRewards();
 
     public void addTeam(String name, ChatColor color) {
         GameManager.getInstance().getTeamNames().put(color, name);
     }
 
-    public abstract void addTeams();
-
     public void addStat(GameStat stat) {
         StatManager.getInstance().registerStat(stat);
 
     }
-
-    public abstract void addStats();
-
-    //all kits, teleports, runnables, etc should be started here.
-    public abstract void startGame();
-
-    public abstract void endCheck();
-
-    public abstract void assignTeams();
-
-    public abstract void giveKitItems(); //MUST BE RUN INSIDE OF startGame()
-
-    public abstract void giveGameRewards();
-
-    public abstract void handlePlayerQuit(Player player);
-
-    public abstract void scoreboard(Player player);
-
-
-
 
     @EventHandler
     public void onUpdate(PerMilliEvent event) {
@@ -103,7 +104,6 @@ public abstract class cpsGame implements Listener {
     }
 
     //Setter getters
-
 
     public String getGameName() {
         return gameName;
@@ -161,6 +161,10 @@ public abstract class cpsGame implements Listener {
         this.startBarMessage = startBarMessage;
     }
 
+    public boolean isTeamJoinMessage() {
+        return teamJoinMessage;
+    }
+
     //Now the methods
 
     public void endGame(Player pWinner, ChatColor cWinner) {
@@ -168,5 +172,4 @@ public abstract class cpsGame implements Listener {
         new EndRunnable(pWinner, cWinner).runTaskAsynchronously(plugin);
     }
 
-    public abstract void announceWinner(Player player, ChatColor color);
 }
