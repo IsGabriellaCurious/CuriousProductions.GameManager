@@ -9,6 +9,7 @@ Copyright (c) IsGeorgeCurious 2020
 
 import de.dytanic.cloudnet.driver.service.ServiceId;
 import de.dytanic.cloudnet.wrapper.Wrapper;
+import me.cps.gameman.chat.GMChatHub;
 import me.cps.gameman.commands.StartCommand;
 import me.cps.gameman.events.GameStateChangeEvent;
 import me.cps.gameman.runnables.SpectatorRunnable;
@@ -17,6 +18,10 @@ import me.cps.gameman.stat.PlayerStat;
 import me.cps.gameman.stat.StatManager;
 import me.cps.root.scoreboard.ScoreboardCentre;
 import me.cps.root.scoreboard.cpsScoreboard;
+import me.cps.root.staff.StaffHub;
+import me.cps.root.staff.StaffModeUpdateEvent;
+import me.cps.root.staff.StaffOptionUpdateEvent;
+import me.cps.root.staff.StaffOptions;
 import me.cps.root.util.PerMilliEvent;
 import me.cps.root.util.PerMilliRunnable;
 import me.cps.gameman.runnables.StartRunnable;
@@ -234,6 +239,13 @@ public class GameManager extends cpsModule {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void playerJoinEvent(PlayerJoinEvent event) {
+        if (StaffHub.getInstance().getInStaffMode().contains(event.getPlayer())) {
+            if (getGameState() == GameState.WAITING)
+                lobbyScoreboard(event.getPlayer());
+
+            event.setJoinMessage("");
+            return;
+        }
         getLivePlayers().add(event.getPlayer());
         Message.console(getLivePlayers().toString());
         if (getGameState() == GameState.WAITING)
@@ -301,6 +313,82 @@ public class GameManager extends cpsModule {
             for (Player p : Bukkit.getServer().getOnlinePlayers()) {
                 getCurrentGame().scoreboard(p);
             }
+        }
+    }
+
+    @EventHandler
+    public void onStaffOption(StaffOptionUpdateEvent event) {
+        StaffOptions option = event.getOption();
+        Player staff = event.getPlayer();
+        boolean toggle = event.isOptionEnabled();
+        boolean override = event.isOverride();
+
+        if (option == StaffOptions.Vanish) {
+            if (!override && !StaffHub.getInstance().getOption(StaffOptions.GameReview, staff)) {
+                StaffHub.getInstance().toggleVanish(false, true, staff);
+                staff.sendMessage("§cYou cannot use vanish in games. Please enabled Game Review");
+                return;
+            }
+        }
+        if (option == StaffOptions.GameChat) {
+            if (toggle)
+                GMChatHub.staffChatDisabled.add(staff);
+            else
+                GMChatHub.staffChatDisabled.remove(staff);
+        return;
+        }
+        if (option == StaffOptions.GameReview) {
+            if (getGameState() == GameState.WAITING) {
+                if (toggle) {
+                    StaffHub.getInstance().toggleVanish(true, true, staff);
+                    staff.setAllowFlight(true);
+                    staff.setFlying(true);
+                    if (getLivePlayers().contains(staff))
+                        getLivePlayers().remove(staff);
+                } else {
+                    StaffHub.getInstance().toggleVanish(false, true, staff);
+                    getLivePlayers().add(staff);
+                    staff.setAllowFlight(false);
+                    staff.setFlying(false);
+                }
+            } else if (getGameState() == GameState.LIVE) {
+                if (!toggle) {
+                    staff.sendMessage("§cYou cannot disable Game Review during a game.");
+                    return;
+                }
+                if (getLivePlayers().contains(staff))
+                    getLivePlayers().remove(staff);
+                GameManager.getInstance().getCurrentGame().handlePlayerQuit(staff);
+                StaffHub.getInstance().toggleVanish(true, true, staff);
+                staff.setAllowFlight(true);
+                staff.setFlying(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onStaffModeUpdate(StaffModeUpdateEvent event) {
+        Player staff = event.getPlayer();
+        boolean toggle = event.isToggle();
+
+        if (toggle) {
+            if (!StaffHub.getInstance().getOption(StaffOptions.Vanish, staff))
+                StaffHub.getInstance().setOption(StaffOptions.Vanish, true, true, staff);
+            if (!StaffHub.getInstance().getOption(StaffOptions.GameReview, staff))
+                StaffHub.getInstance().setOption(StaffOptions.GameReview, true, true, staff);
+        } else {
+            if (getGameState() == GameState.LIVE) {
+                StaffHub.getInstance().staffMode(staff);
+                staff.sendMessage("§cYou cannot disable staff mode during a game!");
+                return;
+            }
+            StaffHub.getInstance().setOption(StaffOptions.Vanish, false, true, staff);
+            GMChatHub.staffChatDisabled.remove(staff);
+            getLivePlayers().add(staff);
+            staff.setAllowFlight(false);
+            staff.setFlying(false);
+
+
         }
     }
 }
