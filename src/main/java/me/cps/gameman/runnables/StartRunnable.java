@@ -9,6 +9,7 @@ Copyright (c) IsGeorgeCurious 2020
 
 import me.cps.gameman.GameManager;
 import me.cps.gameman.GameState;
+import me.cps.root.scoreboard.ScoreboardCentre;
 import me.cps.root.util.ActionBar;
 import me.cps.root.util.Message;
 import me.cps.root.util.PlaySound;
@@ -79,6 +80,7 @@ public class StartRunnable extends BukkitRunnable {
             GameManager.getInstance().getCurrentGame().startGame();
             GameManager.getInstance().setGameState(GameState.LIVE);
             GameManager.getInstance().startSpecRun();
+            ScoreboardCentre.getInstance().resetCacheAll();
             cancel();
             return;
         }
