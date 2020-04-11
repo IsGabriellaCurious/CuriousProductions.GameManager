@@ -33,7 +33,7 @@ public class SpectatorRunnable extends BukkitRunnable {
             if (time <= 4) {
                 ActionBar.send(p, "§7You are a Spectator");
             } else {
-                ActionBar.send(p, "§dWant §fmore points§d? §cDON'T QUiT §dunitl the game ends!");
+                ActionBar.send(p, "§dWant §fmore points§d? §cDON'T QUIT §dunitl the game ends!");
             }
         }
 
