@@ -10,6 +10,7 @@ Copyright (c) IsGeorgeCurious 2020
 import de.dytanic.cloudnet.driver.service.ServiceId;
 import de.dytanic.cloudnet.wrapper.Wrapper;
 import me.cps.gameman.chat.GMChatHub;
+import me.cps.gameman.commands.StaffScoreboardCommand;
 import me.cps.gameman.commands.StartCommand;
 import me.cps.gameman.events.GameStateChangeEvent;
 import me.cps.gameman.runnables.SpectatorRunnable;
@@ -74,8 +75,10 @@ public class GameManager extends cpsModule {
 
     public static String serverName;
 
+    private ArrayList<Player> staffscore = new ArrayList<>();
+
     public GameManager(JavaPlugin plugin, cpsGame game) {
-        super("Game Manager", plugin, "1.3", true);
+        super("Game Manager", plugin, "1.3.2", true);
         instance = this;
         registerSelf();
         this.currentGame = game;
@@ -84,6 +87,7 @@ public class GameManager extends cpsModule {
 
         setupGame();
         registerCommand(new StartCommand(this));
+        //registerCommand(new StaffScoreboardCommand(this));
     }
 
     //All the setter getters for the vars above.
@@ -159,6 +163,10 @@ public class GameManager extends cpsModule {
 
     public HashMap<Player, GameKit> getPlayerKit() {
         return playerKit;
+    }
+
+    public ArrayList<Player> getStaffscore() {
+        return staffscore;
     }
 
     //will load everything the game needs. TODO still need improving probably
@@ -244,8 +252,15 @@ public class GameManager extends cpsModule {
                 lobbyScoreboard(event.getPlayer());
 
             event.setJoinMessage("");
+
             return;
         }
+
+        for (Player p : StaffHub.getInstance().getVanished()) {
+            if (!Rank.hasRank(event.getPlayer().getUniqueId(), Rank.HELPER))
+                event.getPlayer().hidePlayer(p);
+        }
+
         getLivePlayers().add(event.getPlayer());
         Message.console(getLivePlayers().toString());
         if (getGameState() == GameState.WAITING)
@@ -255,7 +270,7 @@ public class GameManager extends cpsModule {
             getDefaultPlayers().add(event.getPlayer());
 
         event.setJoinMessage("");
-        getPlugin().getServer().broadcastMessage(Rank.getRank(event.getPlayer().getUniqueId()).getColor() + event.getPlayer().getName() + " §7has joined the game.");
+        Message.broadcast(Rank.getRank(event.getPlayer().getUniqueId()).getColor() + event.getPlayer().getName() + " §7has joined the game.");
         if (getLivePlayers().size() == getCurrentGame().getMinPlayers()) {
             getPlugin().getServer().broadcastMessage("§eWe have reached the minimum amount of player's required start!");
             new StartRunnable(60, getCurrentGame().getStartBarMessage()).runTaskTimerAsynchronously(getPlugin(), 0 , 20);
@@ -284,10 +299,16 @@ public class GameManager extends cpsModule {
         s.setTitle(getCurrentGame().getScoreName());
         s.clear();
         s.addEmpty();
-        s.add("§a§lYour Stats");
-        for (GameStat stat : StatManager.getInstance().getAvailableStat().values()) {
-            PlayerStat playerStat = StatManager.getInstance().getPlayerStat(player);
-            s.add("§b" + stat.getDisplayName() + ": §f" + playerStat.getStat(stat));
+        if (StaffHub.getInstance().getInStaffMode().contains(player)) {
+            s.add("§c§lStaff Mode");
+            s.add("Vanish: " + (StaffHub.getInstance().getOption(StaffOptions.Vanish, player) ? "§aEnabled" : "§cDisabled"));
+            s.add("Anti-Game Chat: " + (StaffHub.getInstance().getOption(StaffOptions.GameChat, player) ? "§aEnabled" : "§cDisabled"));
+        } else {
+            s.add("§a§lYour Stats");
+            for (GameStat stat : StatManager.getInstance().getAvailableStat().values()) {
+                PlayerStat playerStat = StatManager.getInstance().getPlayerStat(player);
+                s.add("§b" + stat.getDisplayName() + ": §f" + playerStat.getStat(stat));
+            }
         }
         s.addEmpty();
         s.add("§e§lPlayers");
@@ -302,6 +323,20 @@ public class GameManager extends cpsModule {
         s.apply();
     }
 
+    public void staffScoreboard(Player player) {
+        cpsScoreboard s = ScoreboardCentre.getInstance().getScoreboards().get(player);
+
+        s.setTitle("§c§lStaff Mode");
+        s.add("Vanish: " + (StaffHub.getInstance().getOption(StaffOptions.Vanish, player) ? "§aEnabled" : "§cDisabled"));
+        s.add("Anti-Game Chat: " + (StaffHub.getInstance().getOption(StaffOptions.GameChat, player) ? "§aEnabled" : "§cDisabled"));
+        if (Rank.getRank(player.getUniqueId()) == Rank.HELPER) {
+            s.addEmpty();
+            s.add("Run §7/staffscore §fto disable.");
+        }
+
+        s.apply();
+    }
+
     @EventHandler
     public void scoreboardMilli(PerMilliEvent event) {
         if (getGameState() == GameState.WAITING) {
@@ -311,7 +346,11 @@ public class GameManager extends cpsModule {
         }
         if (getGameState() == GameState.LIVE) {
             for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-                getCurrentGame().scoreboard(p);
+                if (getStaffscore().contains(p)) {
+                    ScoreboardCentre.getInstance().resetCache(p);
+                    staffScoreboard(p);
+                } else
+                    getCurrentGame().scoreboard(p);
             }
         }
     }
@@ -323,46 +362,11 @@ public class GameManager extends cpsModule {
         boolean toggle = event.isOptionEnabled();
         boolean override = event.isOverride();
 
-        if (option == StaffOptions.Vanish) {
-            if (!override && !StaffHub.getInstance().getOption(StaffOptions.GameReview, staff)) {
-                StaffHub.getInstance().toggleVanish(false, true, staff);
-                staff.sendMessage("§cYou cannot use vanish in games. Please enabled Game Review");
-                return;
-            }
-        }
         if (option == StaffOptions.GameChat) {
             if (toggle)
                 GMChatHub.staffChatDisabled.add(staff);
             else
                 GMChatHub.staffChatDisabled.remove(staff);
-        return;
-        }
-        if (option == StaffOptions.GameReview) {
-            if (getGameState() == GameState.WAITING) {
-                if (toggle) {
-                    StaffHub.getInstance().toggleVanish(true, true, staff);
-                    staff.setAllowFlight(true);
-                    staff.setFlying(true);
-                    if (getLivePlayers().contains(staff))
-                        getLivePlayers().remove(staff);
-                } else {
-                    StaffHub.getInstance().toggleVanish(false, true, staff);
-                    getLivePlayers().add(staff);
-                    staff.setAllowFlight(false);
-                    staff.setFlying(false);
-                }
-            } else if (getGameState() == GameState.LIVE) {
-                if (!toggle) {
-                    staff.sendMessage("§cYou cannot disable Game Review during a game.");
-                    return;
-                }
-                if (getLivePlayers().contains(staff))
-                    getLivePlayers().remove(staff);
-                GameManager.getInstance().getCurrentGame().handlePlayerQuit(staff);
-                StaffHub.getInstance().toggleVanish(true, true, staff);
-                staff.setAllowFlight(true);
-                staff.setFlying(true);
-            }
         }
     }
 
@@ -372,19 +376,46 @@ public class GameManager extends cpsModule {
         boolean toggle = event.isToggle();
 
         if (toggle) {
+            //getStaffscore().add(staff);
+            //ScoreboardCentre.getInstance().resetCache(staff);
+            staff.sendMessage("§8You have been removed from the game and are invisible to others!");
             if (!StaffHub.getInstance().getOption(StaffOptions.Vanish, staff))
-                StaffHub.getInstance().setOption(StaffOptions.Vanish, true, true, staff);
-            if (!StaffHub.getInstance().getOption(StaffOptions.GameReview, staff))
-                StaffHub.getInstance().setOption(StaffOptions.GameReview, true, true, staff);
+                StaffHub.getInstance().toggleVanish(true, true, true, staff);
+
+            if (getLivePlayers().contains(staff))
+                getLivePlayers().remove(staff);
+
+            staff.setAllowFlight(true);
+            staff.setFlying(true);
+
+            if (getGameState() == GameState.WAITING) {
+                //idk
+            } else if (getGameState() == GameState.LIVE) {
+                getCurrentGame().handlePlayerQuit(staff);
+                if (getStaffscore().contains(staff))
+                    getStaffscore().remove(staff);
+                //getStaffscore().add(staff);
+                //ScoreboardCentre.getInstance().resetCache(staff);
+            }
         } else {
+            //getStaffscore().remove(staff);
+           // ScoreboardCentre.getInstance().resetCache(staff);
             if (getGameState() == GameState.LIVE) {
                 StaffHub.getInstance().staffMode(staff);
+                StaffHub.getInstance().toggleVanish(true, true, false, staff);
                 staff.sendMessage("§cYou cannot disable staff mode during a game!");
                 return;
             }
-            StaffHub.getInstance().setOption(StaffOptions.Vanish, false, true, staff);
+            if (getGameState() == GameState.WAITING) {
+                getLivePlayers().add(staff);
+                Message.broadcast(Rank.getRank(event.getPlayer().getUniqueId()).getColor() + event.getPlayer().getName() + " §7has joined the game.");
+                if (getLivePlayers().size() == getCurrentGame().getMinPlayers()) {
+                    getPlugin().getServer().broadcastMessage("§eWe have reached the minimum amount of player's required start!");
+                    new StartRunnable(60, getCurrentGame().getStartBarMessage()).runTaskTimerAsynchronously(getPlugin(), 0 , 20);
+                }
+            }
+            StaffHub.getInstance().toggleVanish(false, true, false, staff);
             GMChatHub.staffChatDisabled.remove(staff);
-            getLivePlayers().add(staff);
             staff.setAllowFlight(false);
             staff.setFlying(false);
 
