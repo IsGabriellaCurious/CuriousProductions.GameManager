@@ -12,6 +12,7 @@ import me.cps.gameman.stat.StatManager;
 import me.cps.root.Rank;
 import me.cps.root.account.AccountHub;
 import me.cps.root.cpsModule;
+import me.cps.root.util.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -26,6 +27,7 @@ public class GMChatHub extends cpsModule {
     private static GMChatHub instance;
     private boolean displayPoints; //assuming the stat is called "Points"
     public static ArrayList<Player> staffChatDisabled = new ArrayList<>();
+    public boolean chatEnabled = true;
 
     public GMChatHub(JavaPlugin plugin, boolean displayPoints) {
         super("[GM] Chat Hub", plugin, "1.1", false);
@@ -38,12 +40,29 @@ public class GMChatHub extends cpsModule {
         return instance;
     }
 
+    public void toggleChat(boolean result, boolean bc) {
+        if (result) {
+            chatEnabled = true;
+            if (bc)
+                Message.broadcast("§aGame Chat is now enabled.");
+        } else {
+            chatEnabled = false;
+            if (bc)
+                Message.broadcast("§cGame Chat is now diabled.");
+        }
+    }
+
     @EventHandler
     public void onChat(AsyncPlayerChatEvent event) {
         event.setCancelled(true);
 
         if (staffChatDisabled.contains(event.getPlayer())) {
             event.getPlayer().sendMessage("§cYou can't talk whilst you have game chat disabled!");
+            return;
+        }
+
+        if (!chatEnabled) {
+            event.getPlayer().sendMessage("§cGame Chat is currently disabled.");
             return;
         }
 
