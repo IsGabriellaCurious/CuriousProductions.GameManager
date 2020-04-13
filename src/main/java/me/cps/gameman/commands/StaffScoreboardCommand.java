@@ -33,7 +33,6 @@ public class StaffScoreboardCommand extends cpsCommand<GameManager> {
             caller.sendMessage(StaffHub.prefix + "§cStaff Scoreboard disabled.");
         } else {
             ScoreboardCentre.getInstance().resetCache(caller);
-            getPlugin().staffScoreboard(caller);
             getPlugin().getStaffscore().add(caller);
             caller.sendMessage(StaffHub.prefix + "§aStaff Scoreboard enabled.");
         }

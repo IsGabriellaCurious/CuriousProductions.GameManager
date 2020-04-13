@@ -87,7 +87,7 @@ public class GameManager extends cpsModule {
 
         setupGame();
         registerCommand(new StartCommand(this));
-        //registerCommand(new StaffScoreboardCommand(this));
+        registerCommand(new StaffScoreboardCommand(this));
     }
 
     //All the setter getters for the vars above.
@@ -327,6 +327,7 @@ public class GameManager extends cpsModule {
         cpsScoreboard s = ScoreboardCentre.getInstance().getScoreboards().get(player);
 
         s.setTitle("§c§lStaff Mode");
+        s.clear();
         s.add("Vanish: " + (StaffHub.getInstance().getOption(StaffOptions.Vanish, player) ? "§aEnabled" : "§cDisabled"));
         s.add("Anti-Game Chat: " + (StaffHub.getInstance().getOption(StaffOptions.GameChat, player) ? "§aEnabled" : "§cDisabled"));
         if (Rank.getRank(player.getUniqueId()) == Rank.HELPER) {
@@ -347,7 +348,6 @@ public class GameManager extends cpsModule {
         if (getGameState() == GameState.LIVE) {
             for (Player p : Bukkit.getServer().getOnlinePlayers()) {
                 if (getStaffscore().contains(p)) {
-                    ScoreboardCentre.getInstance().resetCache(p);
                     staffScoreboard(p);
                 } else
                     getCurrentGame().scoreboard(p);
@@ -370,14 +370,15 @@ public class GameManager extends cpsModule {
         }
     }
 
+    @Deprecated
     @EventHandler
     public void onStaffModeUpdate(StaffModeUpdateEvent event) {
         Player staff = event.getPlayer();
         boolean toggle = event.isToggle();
 
         if (toggle) {
-            //getStaffscore().add(staff);
-            //ScoreboardCentre.getInstance().resetCache(staff);
+            getStaffscore().add(staff);
+            ScoreboardCentre.getInstance().resetCache(staff);
             staff.sendMessage("§8You have been removed from the game and are invisible to others!");
             if (!StaffHub.getInstance().getOption(StaffOptions.Vanish, staff))
                 StaffHub.getInstance().toggleVanish(true, true, true, staff);
@@ -394,12 +395,12 @@ public class GameManager extends cpsModule {
                 getCurrentGame().handlePlayerQuit(staff);
                 if (getStaffscore().contains(staff))
                     getStaffscore().remove(staff);
-                //getStaffscore().add(staff);
-                //ScoreboardCentre.getInstance().resetCache(staff);
+                getStaffscore().add(staff);
+                ScoreboardCentre.getInstance().resetCache(staff);
             }
         } else {
-            //getStaffscore().remove(staff);
-           // ScoreboardCentre.getInstance().resetCache(staff);
+            getStaffscore().remove(staff);
+           ScoreboardCentre.getInstance().resetCache(staff);
             if (getGameState() == GameState.LIVE) {
                 StaffHub.getInstance().staffMode(staff);
                 StaffHub.getInstance().toggleVanish(true, true, false, staff);
