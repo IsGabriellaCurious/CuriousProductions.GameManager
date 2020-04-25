@@ -30,7 +30,7 @@ public class GMChatHub extends cpsModule {
     public boolean chatEnabled = true;
 
     public GMChatHub(JavaPlugin plugin, boolean displayPoints) {
-        super("[GM] Chat Hub", plugin, "1.1", false);
+        super("[GM] Chat Hub", plugin, "1.2", false);
         instance = this;
         this.displayPoints = displayPoints;
         registerSelf();
@@ -48,7 +48,7 @@ public class GMChatHub extends cpsModule {
         } else {
             chatEnabled = false;
             if (bc)
-                Message.broadcast("§cGame Chat is now diabled.");
+                Message.broadcast("§cGame Chat is now disabled.");
         }
     }
 
@@ -69,10 +69,10 @@ public class GMChatHub extends cpsModule {
         String full = "";
         if (displayPoints)
             if (!GameManager.getInstance().getSpectators().contains(event.getPlayer()))
-                full = "§6[" + StatManager.getInstance().getCurrentStat(event.getPlayer().getUniqueId(), StatManager.getInstance().getAvailableStat().get("Points")) + "] "
+                full = "§6[" + StatManager.getInstance().getPlayerStat(event.getPlayer()).getStat(StatManager.getInstance().getAvailableStat().get("Points")) + "] "
                     + AccountHub.getInstance().getPlayers().get(event.getPlayer().getUniqueId()).getPrefix() + event.getPlayer().getDisplayName() + " " + ChatColor.WHITE + event.getMessage();
             else
-                full = "§6[" + StatManager.getInstance().getCurrentStat(event.getPlayer().getUniqueId(), StatManager.getInstance().getAvailableStat().get("Points")) + "] "
+                full = "§6[" + StatManager.getInstance().getPlayerStat(event.getPlayer()).getStat(StatManager.getInstance().getAvailableStat().get("Points")) + "] "
                         + "§7[SPEC] " + Rank.getRank(event.getPlayer().getUniqueId()).getColor() + event.getPlayer().getDisplayName() + " " + ChatColor.WHITE + event.getMessage();
         else
             if (!GameManager.getInstance().getSpectators().contains(event.getPlayer()))

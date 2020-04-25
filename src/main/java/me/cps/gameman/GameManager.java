@@ -60,6 +60,7 @@ public class GameManager extends cpsModule {
     private HashMap<ChatColor, String> teamNames = new HashMap<>();
 
     private ArrayList<Player> defaultPlayers = new ArrayList<>();
+    private ArrayList<Player> wasInGame = new ArrayList<>();
 
     private ArrayList<GameKit> availableKits = new ArrayList<>();
 
@@ -161,6 +162,10 @@ public class GameManager extends cpsModule {
         this.packRequired = packRequired;
     }
 
+    public ArrayList<Player> getWasInGame() {
+        return wasInGame;
+    }
+
     public HashMap<Player, GameKit> getPlayerKit() {
         return playerKit;
     }
@@ -247,6 +252,9 @@ public class GameManager extends cpsModule {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void playerJoinEvent(PlayerJoinEvent event) {
+        if (getCurrentGame().getHub() != null)
+            event.getPlayer().teleport(getCurrentGame().getHub());
+
         if (StaffHub.getInstance().getInStaffMode().contains(event.getPlayer())) {
             if (getGameState() == GameState.WAITING)
                 lobbyScoreboard(event.getPlayer());
@@ -298,26 +306,23 @@ public class GameManager extends cpsModule {
 
         s.setTitle(getCurrentGame().getScoreName());
         s.clear();
-        s.addEmpty();
+        s.add("§8»§m--------------------§r§8«");
         if (StaffHub.getInstance().getInStaffMode().contains(player)) {
-            s.add("§c§lStaff Mode");
-            s.add("Vanish: " + (StaffHub.getInstance().getOption(StaffOptions.Vanish, player) ? "§aEnabled" : "§cDisabled"));
-            s.add("Anti-Game Chat: " + (StaffHub.getInstance().getOption(StaffOptions.GameChat, player) ? "§aEnabled" : "§cDisabled"));
+            s.add("§cStaff Mode");
+            s.add("Vanish §8» " + (StaffHub.getInstance().getOption(StaffOptions.Vanish, player) ? "§aEnabled" : "§cDisabled"));
+            s.add("Anti-Game Chat §8» " + (StaffHub.getInstance().getOption(StaffOptions.GameChat, player) ? "§aEnabled" : "§cDisabled"));
         } else {
-            s.add("§a§lYour Stats");
+            s.add("§aYour Stats");
             for (GameStat stat : StatManager.getInstance().getAvailableStat().values()) {
                 PlayerStat playerStat = StatManager.getInstance().getPlayerStat(player);
                 s.add("§b" + stat.getDisplayName() + ": §f" + playerStat.getStat(stat));
             }
         }
         s.addEmpty();
-        s.add("§e§lPlayers");
-        s.add("" + getLivePlayers().size() + "/" + getCurrentGame().getMaxPlayers());
+        s.add("§ePlayers §8» §f" + getLivePlayers().size() + "/" + getCurrentGame().getMaxPlayers());
         s.addEmpty();
-        s.add("§b§lServer");
-        s.add("" + serverName);
-        s.addEmpty();
-        s.add("§8----------");
+        s.add("§9Server §8» §f" + serverName);
+        s.add("§r§8»§m--------------------§r§8«");
         s.add("§bplay.CPS.me");
 
         s.apply();

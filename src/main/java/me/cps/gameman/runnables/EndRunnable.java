@@ -12,6 +12,7 @@ import me.cps.gameman.GameState;
 import me.cps.gameman.stat.StatManager;
 import me.cps.root.Rank;
 import me.cps.root.proxy.ProxyManager;
+import me.cps.root.util.center.Centered;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -23,10 +24,12 @@ public class EndRunnable extends BukkitRunnable {
 
     Player pWinner;
     ChatColor cWinner;
+    int toHubSecs;
 
-    public EndRunnable(Player pWinner, ChatColor cWinner) {
+    public EndRunnable(Player pWinner, ChatColor cWinner, int toHubSecs) {
         this.pWinner = pWinner;
         this.cWinner = cWinner;
+        this.toHubSecs = toHubSecs;
     }
 
 
@@ -48,10 +51,10 @@ public class EndRunnable extends BukkitRunnable {
             Rank rank = Rank.getRank(p.getUniqueId());
             if (Rank.hasRank(p.getUniqueId(), Rank.DONATOR)) {
                 p.sendMessage(" ");
-                p.sendMessage("§6Thanks for playing, " + rank.getColor() + p.getName());
+                p.sendMessage(Centered.create("§6Thanks for playing, " + rank.getColor() + p.getName()));
                 p.sendMessage(" ");
-                p.sendMessage("§bWant to play §f" + GameManager.getInstance().getCurrentGame().getGameName() + " §bwith just you and your friends?");
-                p.sendMessage("§cWell too bad, you can't §ryet."); //TODO lmao make it so you can!!
+                p.sendMessage(Centered.create("§bWant to play §f" + GameManager.getInstance().getCurrentGame().getGameName() + " §bwith just you and your friends?"));
+                p.sendMessage(Centered.create("§cWell too bad, you can't §ryet.")); //TODO lmao make it so you can!!
                 p.sendMessage(" ");
             } else {
                 p.sendMessage(" ");
@@ -61,10 +64,13 @@ public class EndRunnable extends BukkitRunnable {
                 p.sendMessage("§eBuy a donator rank and help support the server!");
                 p.sendMessage(" ");
             }
-            p.sendMessage("§7§lGoing to the Hub in 10 seconds...");
+            p.sendMessage("§7§lGoing to the Hub in " + toHubSecs + " seconds...");
+            if (toHubSecs >= 60)
+                p.sendMessage("§8" + ChatColor.ITALIC + "Want to leave earlier? Run /hub");
+            p.sendMessage("\n§aPlease allow up to 5 minutes for your stat to be pushed.");
         }
         try {
-            TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(toHubSecs);
         } catch (Exception e) {
             e.printStackTrace();
         }

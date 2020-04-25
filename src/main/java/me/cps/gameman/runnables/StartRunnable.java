@@ -9,10 +9,12 @@ Copyright (c) IsGeorgeCurious 2020
 
 import me.cps.gameman.GameManager;
 import me.cps.gameman.GameState;
+import me.cps.gameman.events.GameStartEvent;
 import me.cps.root.scoreboard.ScoreboardCentre;
 import me.cps.root.util.ActionBar;
 import me.cps.root.util.Message;
 import me.cps.root.util.PlaySound;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -77,10 +79,12 @@ public class StartRunnable extends BukkitRunnable {
                 p.setHealth(20);
                 p.setFoodLevel(20);
             }
-            GameManager.getInstance().getCurrentGame().startGame();
-            GameManager.getInstance().setGameState(GameState.LIVE);
-            GameManager.getInstance().startSpecRun();
-            ScoreboardCentre.getInstance().resetCacheAll();
+            Bukkit.getServer().getScheduler().runTask(GameManager.getInstance().getPlugin(), () -> {
+                Bukkit.getServer().getPluginManager().callEvent(new GameStartEvent());
+                GameManager.getInstance().setGameState(GameState.LIVE);
+                GameManager.getInstance().startSpecRun();
+                ScoreboardCentre.getInstance().resetCacheAll();
+            });
             cancel();
             return;
         }

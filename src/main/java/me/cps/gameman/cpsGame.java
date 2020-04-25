@@ -7,12 +7,14 @@ permission to read this. if not, fuck off :)
 Copyright (c) IsGeorgeCurious 2020
 */
 
+import me.cps.gameman.events.GameStartEvent;
 import me.cps.gameman.runnables.EndRunnable;
 import me.cps.gameman.stat.GameStat;
 import me.cps.gameman.stat.StatManager;
 import me.cps.root.util.PerMilliEvent;
 import me.cps.root.util.Message;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -40,6 +42,8 @@ public abstract class cpsGame implements Listener {
 
     private boolean teamJoinMessage;
 
+    private Location hub;
+
     private String startBarMessage = "The game will start in";
 
     public cpsGame(JavaPlugin plugin, String gameName, String scoreName, String mysqlName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit, boolean teamJoinMessage) {
@@ -64,6 +68,11 @@ public abstract class cpsGame implements Listener {
         kitNames.put(kit.getName(), kit);
     }
 
+    public void setHub(Location location) {
+        this.hub = location;
+    }
+
+
     public abstract void addStats();
 
     public abstract void addTeams();
@@ -74,7 +83,8 @@ public abstract class cpsGame implements Listener {
 
     public abstract void giveKitItems(); //MUST BE RUN INSIDE OF startGame()
 
-    public abstract void startGame(); //all kits, teleports, runnables, etc should be started here.
+    @EventHandler
+    public abstract void startGame(GameStartEvent event); //all kits, teleports, runnables, etc should be started here.
 
     public abstract void scoreboard(Player player);
 
@@ -165,11 +175,20 @@ public abstract class cpsGame implements Listener {
         return teamJoinMessage;
     }
 
+    public Location getHub() {
+        return hub;
+    }
+
     //Now the methods
 
     public void endGame(Player pWinner, ChatColor cWinner) {
         GameManager.getInstance().setGameState(GameState.ENDING);
-        new EndRunnable(pWinner, cWinner).runTaskAsynchronously(plugin);
+        new EndRunnable(pWinner, cWinner, 10).runTaskAsynchronously(plugin);
+    }
+
+    public void endGame(Player pWinner, ChatColor cWinner, int toHubSecs) {
+        GameManager.getInstance().setGameState(GameState.ENDING);
+        new EndRunnable(pWinner, cWinner, toHubSecs).runTaskAsynchronously(plugin);
     }
 
 }
