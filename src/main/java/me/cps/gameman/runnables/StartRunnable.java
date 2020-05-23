@@ -44,47 +44,56 @@ public class StartRunnable extends BukkitRunnable {
             return;
         }
 
-        if (GameManager.getInstance().getCurrentGame().getMinPlayers() > GameManager.getInstance().getLivePlayers().size()) {
-            ActionBar.all("§c§lCanceled! Waiting for players...");
-            Message.broadcast("§c§lCanceled! Waiting for players...");
-            PlaySound.all(Sound.ENDERDRAGON_GROWL, 100, 1);
-            almost = false;
-            full = false;
-            GameManager.getInstance().startWaiting();
-            cancel();
+        if (GameManager.timerPaused) {
+            ActionBar.all("§cThe timer has been paused.");
             return;
         }
 
-        if (GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMaxPlayers()-3 && !(GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMaxPlayers())) {
-            if (!almost) {
-                Message.broadcast("§aWe almost have a full server! Shortening timer to 30 seconds!");
-                GameManager.getInstance().gameStartTimer = 31;
-                almost = true;
-            }
-        }
-
-        if (GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMaxPlayers()) {
-            if (!full) {
-                Message.broadcast("§aWe have a full server! Starting in 10 seconds!");
-                GameManager.getInstance().gameStartTimer = 100; //todo change back
-                full = true;
+        if (!GameManager.forceStart) {
+            if (GameManager.getInstance().getCurrentGame().getMinPlayers() > GameManager.getInstance().getLivePlayers().size()) {
+                ActionBar.all("§c§lCanceled! Waiting for players...");
+                Message.broadcast("§c§lCanceled! Waiting for players...");
+                PlaySound.all(Sound.ENDERDRAGON_GROWL, 100, 1);
+                almost = false;
+                full = false;
+                GameManager.getInstance().startWaiting();
+                cancel();
+                return;
             }
 
+            if (GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMaxPlayers()-3 && !(GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMaxPlayers())) {
+                if (!almost) {
+                    Message.broadcast("§aWe almost have a full server! Shortening timer to 30 seconds!");
+                    GameManager.getInstance().gameStartTimer = 31;
+                    almost = true;
+                }
+            }
+
+            if (GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMaxPlayers()) {
+                if (!full) {
+                    Message.broadcast("§aWe have a full server! Starting in 10 seconds!");
+                    GameManager.getInstance().gameStartTimer = 100; //todo change back
+                    full = true;
+                }
+
+            }
         }
 
         GameManager.getInstance().gameStartTimer -= 1;
 
         if (GameManager.getInstance().gameStartTimer == 0) {
-            for (Player p : GameManager.getInstance().getLivePlayers()) {
-                p.setHealth(20);
-                p.setFoodLevel(20);
-            }
             Bukkit.getServer().getScheduler().runTask(GameManager.getInstance().getPlugin(), () -> {
                 Bukkit.getServer().getPluginManager().callEvent(new GameStartEvent());
                 GameManager.getInstance().setGameState(GameState.LIVE);
                 GameManager.getInstance().startSpecRun();
                 ScoreboardCentre.getInstance().resetCacheAll();
             });
+            for (Player p : GameManager.getInstance().getLivePlayers()) {
+                p.setHealth(20);
+                p.setFoodLevel(20);
+                if (!GameManager.getInstance().isStats())
+                    p.sendMessage("§c§lNote: §cYour stats will not be effected this game.");
+            }
             cancel();
             return;
         }

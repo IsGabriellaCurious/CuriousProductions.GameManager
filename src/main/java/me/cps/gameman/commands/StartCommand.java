@@ -28,6 +28,6 @@ public class StartCommand extends cpsCommand<GameManager> {
         }
 
         GameManager.getInstance().gameStartTimer = 10;
-        Message.broadcast("§a§lThe timer has been shortened to 10 seconds."); //TODO make it only work during countdowns
+        Message.broadcast("§aThe timer has been shortened to 10 seconds."); //TODO make it only work during countdowns
     }
 }

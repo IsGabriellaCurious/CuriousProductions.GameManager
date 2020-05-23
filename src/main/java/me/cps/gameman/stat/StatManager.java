@@ -36,10 +36,22 @@ public class StatManager extends cpsModule {
     private HashMap<String, GameStat> availableStat = new HashMap<>();
     private HashMap<Player, PlayerStat> stat = new HashMap<>();
 
-    public StatManager(JavaPlugin plugin) {
+    private boolean levels;
+    private double levelExponent;
+    private int levelBaseXP;
+    private boolean levelHotbar;
+    private UUID topPlayer;
+
+    private String name;
+
+    public StatManager(JavaPlugin plugin, boolean levels, double levelExponent, int levelBaseXP, boolean levelHotbar) {
         super("[GM] Stat Manager", plugin, "1.1", true);
         instance = this;
         registerSelf();
+        this.levels = levels;
+        this.levelExponent = levelExponent;
+        this.levelBaseXP = levelBaseXP;
+        this.levelHotbar = levelHotbar;
     }
 
     //events
@@ -67,6 +79,14 @@ public class StatManager extends cpsModule {
     }
 
     //voids
+    public UUID getTopPlayerUUID() {
+        return topPlayer;
+    }
+
+    public void setTopPlayerUUID(UUID topPlayer) {
+        this.topPlayer = topPlayer;
+    }
+
     public PlayerStat getPlayerStat(Player player) {
         return getStat().get(player);
     }
@@ -79,6 +99,12 @@ public class StatManager extends cpsModule {
     public void pushStats(boolean shutdownWhenDone) {
         Message.console("[STAT MANAGER] Stat Push started...");
 
+        if (GameManager.getInstance().isEventMode() && !GameManager.getInstance().isStats()) {
+            Message.console("[STAT MANAGER] Server is in event mode, cancelling...");
+            if (shutdownWhenDone)
+                Bukkit.getServer().shutdown();
+            return;
+        }
 
         for (PlayerStat stat : getStat().values()) {
             Message.console("[STAT MANAGER] Pushing " + stat.getPlayer().getName());
@@ -106,7 +132,11 @@ public class StatManager extends cpsModule {
             Connection connection = AccountHub.getInstance().createConnection();
 
             PreparedStatement statement = connection.prepareStatement("UPDATE `game." + GameManager.getInstance().getCurrentGame().getMysqlName() + "` SET " + name + "=? WHERE uuid=?");
-            int next = prev + amount;
+            int next;
+            if (prev == -1)
+                next = amount;
+            else
+                next = prev + amount;
             statement.setInt(1, next);
             statement.setString(2, uuid.toString());
 
@@ -174,4 +204,112 @@ public class StatManager extends cpsModule {
         }
     }
 
+    public UUID getTopLevel() {
+        UUID top = null;
+        int currentHighest = 0;
+        ArrayList<UUID> sameLevelHighest = new ArrayList<>();
+        try {
+            Connection connection = AccountHub.getInstance().createConnection();
+
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM `game." + GameManager.getInstance().getCurrentGame().getMysqlName() + "`");
+            statement.executeQuery();
+
+            ResultSet resultSet = statement.getResultSet();
+            while (resultSet.next()) {
+
+                int lvl = resultSet.getInt("level");
+
+                if (lvl == currentHighest) {
+                    sameLevelHighest.add(UUID.fromString(resultSet.getString("uuid")));
+                    if (!sameLevelHighest.contains(top))
+                        sameLevelHighest.add(top);
+
+                    continue;
+                }
+
+                if (lvl > currentHighest) {
+                    top = UUID.fromString(resultSet.getString("uuid"));
+                    currentHighest = lvl;
+                    sameLevelHighest.clear();
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        if (sameLevelHighest.size() != 0) {
+            int xpHighest = 0;
+            try {
+                Connection connection = AccountHub.getInstance().createConnection();
+
+                PreparedStatement statement = connection.prepareStatement("SELECT * FROM `game." + GameManager.getInstance().getCurrentGame().getMysqlName() + "`");
+                statement.executeQuery();
+
+                ResultSet resultSet = statement.getResultSet();
+                while (resultSet.next()) {
+
+                    if (sameLevelHighest.contains(UUID.fromString(resultSet.getString("uuid")))) {
+                        int xp = resultSet.getInt("xp");
+
+                        if (xp > xpHighest) {
+                            xpHighest = xp;
+                            top = UUID.fromString(resultSet.getString("uuid"));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        Message.console("" + top + " is the top player!");
+        return top;
+    }
+
+    public int xpRequired(int nextLevel) {
+        return (int) Math.floor(levelBaseXP * Math.pow(nextLevel, levelExponent));
+    }
+
+    public boolean canLevelUp(UUID uuid, int currentLevel, int currentXp) {
+        boolean result;
+        Message.console("Is " + currentXp + " greather than or equal to " + xpRequired(currentLevel + 1) + "?");
+        if (currentXp >= xpRequired(currentLevel + 1)) {
+            sqlSetStat(uuid, "level", -1, currentLevel + 1);
+            sqlSetStat(uuid, "xp", -1, 0);
+            result = true;
+        } else {
+            result = false;
+        }
+        Message.console("" + result);
+        return result;
+    }
+
+    public int percentTilNextLvl(Player player) {
+        UUID uuid = player.getUniqueId();
+        int level = getPlayerStat(player).forceGetStat(getAvailableStat().get("level"));
+        int xp = getPlayerStat(player).forceGetStat(getAvailableStat().get("xp"));
+
+        int percent = (int) Math.floor(xp / xpRequired(level++));
+
+        return percent * 100;
+    }
+
+    public void setXpBar(Player player) {
+        int percent = percentTilNextLvl(player);
+        int level = getPlayerStat(player).forceGetStat(getAvailableStat().get("level"));
+
+        player.setLevel(level);
+        player.setExp(percent / 100);
+    }
+
+    public boolean isLevels() {
+        return levels;
+    }
+
+    public boolean isLevelHotbar() {
+        return levelHotbar;
+    }
 }

@@ -127,6 +127,14 @@
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>me.cps</groupId>
+            <artifactId>CuriousProductions.Game.PvPHub</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

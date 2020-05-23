@@ -18,7 +18,7 @@ public class WaitingRunnable extends BukkitRunnable {
 
     @Override
     public void run() {
-        if (GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMinPlayers()) {
+        if (GameManager.getInstance().getLivePlayers().size() >= GameManager.getInstance().getCurrentGame().getMinPlayers() || GameManager.forceStart) {
             cancel();
             return;
         }
@@ -43,7 +43,7 @@ public class WaitingRunnable extends BukkitRunnable {
             return;
         }
         if (time == 7 || time == 8 || time == 8.5) {
-            ActionBar.all("§don §f§lCPS");
+            ActionBar.all("§don §f§l" + GameManager.networkName);
             return;
         }
 

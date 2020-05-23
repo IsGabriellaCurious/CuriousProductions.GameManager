@@ -7,14 +7,17 @@ permission to read this. if not, fuck off :)
 Copyright (c) IsGeorgeCurious 2020
 */
 
+import de.dytanic.cloudnet.wrapper.Wrapper;
 import me.cps.gameman.events.GameStartEvent;
 import me.cps.gameman.runnables.EndRunnable;
 import me.cps.gameman.stat.GameStat;
 import me.cps.gameman.stat.StatManager;
+import me.cps.root.server.ServerManager;
 import me.cps.root.util.PerMilliEvent;
 import me.cps.root.util.Message;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,6 +28,8 @@ import java.util.HashMap;
 public abstract class cpsGame implements Listener {
 
     private JavaPlugin plugin;
+
+    public Enum prestige;
 
     private String gameName;
     private String scoreName;
@@ -43,10 +48,11 @@ public abstract class cpsGame implements Listener {
     private boolean teamJoinMessage;
 
     private Location hub;
+    private World gameWorld;
 
     private String startBarMessage = "The game will start in";
 
-    public cpsGame(JavaPlugin plugin, String gameName, String scoreName, String mysqlName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit, boolean teamJoinMessage) {
+    public cpsGame(JavaPlugin plugin, String gameName, String scoreName, String mysqlName, boolean respawn, int respawnTimer, int minPlayers, int maxPlayers, boolean forceMax, String defaultKit, boolean teamJoinMessage, World gameWorld) {
         Message.console("§aGame file is being initialized!");
         this.plugin = plugin;
         this.gameName = gameName;
@@ -56,9 +62,11 @@ public abstract class cpsGame implements Listener {
         this.respawnTimer = respawnTimer;
         this.minPlayers = minPlayers;
         this.maxPlayers = maxPlayers;
+        ServerManager.getInstance().setMaxPlayers(GameManager.serverName, maxPlayers);
         this.forceMax = forceMax;
         this.defaultKit = defaultKit;
         this.teamJoinMessage = teamJoinMessage;
+        this.gameWorld = gameWorld;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         Message.console("§aDone!");
     }
@@ -72,6 +80,18 @@ public abstract class cpsGame implements Listener {
         this.hub = location;
     }
 
+    public World getGameWorld() {
+        return gameWorld;
+    }
+
+    public void setGameWorld(World gameWorld) {
+        this.gameWorld = gameWorld;
+    }
+
+    public void setMaxPlayers(int maxPlayers) {
+        this.maxPlayers = maxPlayers;
+        ServerManager.getInstance().setMaxPlayers(Wrapper.getInstance().getServiceId().getName(), maxPlayers);
+    }
 
     public abstract void addStats();
 
@@ -95,6 +115,8 @@ public abstract class cpsGame implements Listener {
     public abstract void announceWinner(Player player, ChatColor color);
 
     public abstract void giveGameRewards();
+
+    public abstract void chatMessage(Player player, String message, boolean showStat);
 
     public void addTeam(String name, ChatColor color) {
         GameManager.getInstance().getTeamNames().put(color, name);

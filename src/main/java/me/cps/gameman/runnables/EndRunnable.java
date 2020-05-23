@@ -12,9 +12,11 @@ import me.cps.gameman.GameState;
 import me.cps.gameman.stat.StatManager;
 import me.cps.root.Rank;
 import me.cps.root.proxy.ProxyManager;
+import me.cps.root.util.PlaySound;
 import me.cps.root.util.center.Centered;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -41,7 +43,21 @@ public class EndRunnable extends BukkitRunnable {
             GameManager.getInstance().getCurrentGame().announceWinner(pWinner, null);
         else
             GameManager.getInstance().getCurrentGame().announceWinner(null, null);
+
         GameManager.getInstance().getCurrentGame().giveGameRewards(); //this is only awarding them in statman
+        StatManager.getInstance().pushStats(false); //is actually giving the stat
+
+        if (StatManager.getInstance().isLevels()) {
+            for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+                int currentLevel = StatManager.getInstance().getPlayerStat(p).forceGetStat(StatManager.getInstance().getAvailableStat().get("Level"));
+                int currentXp = StatManager.getInstance().getPlayerStat(p).forceGetStat(StatManager.getInstance().getAvailableStat().get("XP"));
+                if (StatManager.getInstance().canLevelUp(p.getUniqueId(), currentLevel, currentXp)) {
+                    p.sendMessage("§6§k11 §aYou leveled up to §bLevel " + (currentLevel + 1) + "§a! §6§k11");
+                    PlaySound.play(p, Sound.LEVEL_UP, 100f, 1f);
+                }
+            }
+        }
+
         try {
             TimeUnit.SECONDS.sleep(5);
         } catch (Exception e) {
@@ -65,9 +81,9 @@ public class EndRunnable extends BukkitRunnable {
                 p.sendMessage(" ");
             }
             p.sendMessage("§7§lGoing to the Hub in " + toHubSecs + " seconds...");
-            if (toHubSecs >= 60)
+            if (toHubSecs >= 60) {
                 p.sendMessage("§8" + ChatColor.ITALIC + "Want to leave earlier? Run /hub");
-            p.sendMessage("\n§aPlease allow up to 5 minutes for your stat to be pushed.");
+            }
         }
         try {
             TimeUnit.SECONDS.sleep(toHubSecs);
@@ -84,6 +100,6 @@ public class EndRunnable extends BukkitRunnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        StatManager.getInstance().pushStats(true); //is actually giving the stat
+        Bukkit.getServer().shutdown();
     }
 }

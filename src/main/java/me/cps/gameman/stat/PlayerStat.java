@@ -61,9 +61,14 @@ public class PlayerStat {
             int i = amount + getEarnedStat().get(stat);
             hashGetEarnedStat().remove(stat);
             hashGetEarnedStat().put(stat, i);
+            hashGetCurrentStat().put(stat, i);
         } else
             hashGetEarnedStat().put(stat, amount);
         Message.console("awared " + amount +" of " + stat.getDisplayName());
+    }
+
+    public int forceGetStat(GameStat stat) {
+        return StatManager.getInstance().getCurrentStat(player.getUniqueId(), stat);
     }
 
 

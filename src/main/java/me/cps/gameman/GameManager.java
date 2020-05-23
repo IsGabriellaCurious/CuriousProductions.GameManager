@@ -9,14 +9,18 @@ Copyright (c) IsGeorgeCurious 2020
 
 import de.dytanic.cloudnet.driver.service.ServiceId;
 import de.dytanic.cloudnet.wrapper.Wrapper;
+import me.cps.game.pvphub.PvPHub;
 import me.cps.gameman.chat.GMChatHub;
-import me.cps.gameman.commands.StaffScoreboardCommand;
-import me.cps.gameman.commands.StartCommand;
+import me.cps.gameman.commands.*;
+import me.cps.gameman.event.EventStaffType;
+import me.cps.gameman.event.EventsManager;
+import me.cps.gameman.event.commands.SetEventCommand;
 import me.cps.gameman.events.GameStateChangeEvent;
 import me.cps.gameman.runnables.SpectatorRunnable;
 import me.cps.gameman.stat.GameStat;
 import me.cps.gameman.stat.PlayerStat;
 import me.cps.gameman.stat.StatManager;
+import me.cps.root.redis.RedisHub;
 import me.cps.root.scoreboard.ScoreboardCentre;
 import me.cps.root.scoreboard.cpsScoreboard;
 import me.cps.root.staff.StaffHub;
@@ -31,8 +35,11 @@ import me.cps.root.Rank;
 import me.cps.root.cpsModule;
 import me.cps.root.proxy.ProxyManager;
 import me.cps.root.util.Message;
+import me.cps.root.util.center.Centered;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -41,6 +48,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import redis.clients.jedis.Jedis;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +57,13 @@ import java.util.Random;
 public class GameManager extends cpsModule {
 
     private static GameManager instance;
+
+    public static boolean timerPaused = false;
+    public static boolean forceStart = false;
+
+    private FileConfiguration config;
+    public static String networkName;
+    public static String networkWeb;
 
     private cpsGame currentGame;
     private GameState gameState;
@@ -78,9 +93,19 @@ public class GameManager extends cpsModule {
 
     private ArrayList<Player> staffscore = new ArrayList<>();
 
-    public GameManager(JavaPlugin plugin, cpsGame game) {
+    //event manager shit
+    private boolean eventMode = false;
+    private boolean stats = true; //ONLY USED IS EVENTS IS ENABLED
+    private HashMap<Player, EventStaffType> eventStaff = new HashMap<>();
+    public EventsManager eventsManager;
+
+    public GameManager(JavaPlugin plugin, cpsGame game, FileConfiguration config) {
         super("Game Manager", plugin, "1.3.2", true);
+        //PvPHub pvPHub = new PvPHub(plugin);
         instance = this;
+        this.config = config;
+        networkName = config.getString("networkName");
+        networkWeb = config.getString("networkWeb");
         registerSelf();
         this.currentGame = game;
         serverName = serviceId.getName();
@@ -89,6 +114,15 @@ public class GameManager extends cpsModule {
         setupGame();
         registerCommand(new StartCommand(this));
         registerCommand(new StaffScoreboardCommand(this));
+        registerCommand(new SetEventCommand(this));
+        registerCommand(new PauseTimerCommand(this));
+        registerCommand(new ForceStartCommand(this));
+        registerCommand(new LocationCommand(this));
+
+        if (serviceId.getTaskName().equalsIgnoreCase("EVENT")) {
+            eventMode = true;
+            eventsManager = new EventsManager(getPlugin(), this);
+        }
     }
 
     //All the setter getters for the vars above.
@@ -102,6 +136,14 @@ public class GameManager extends cpsModule {
         return gameState;
     }
 
+    public boolean isStats() {
+        return stats;
+    }
+
+    public void setStats(boolean stats) {
+        this.stats = stats;
+    }
+
     public void setGameState(GameState gameState) {
         GameStateChangeEvent event = new GameStateChangeEvent(); //this is an event so other things can know when the game state's changed
         Bukkit.getPluginManager().callEvent(event);
@@ -109,6 +151,12 @@ public class GameManager extends cpsModule {
         Message.console("GAME STATE UPDATE: " + gameState.toString());
         if (gameState == GameState.LIVE)
             Message.console("Live players: " + getLivePlayers().toString());
+        try (Jedis jedis = RedisHub.getInstance().getPool().getResource()) {
+            if (RedisHub.getInstance().isPwRequired())
+                jedis.auth(RedisHub.getInstance().getPassword());
+
+            jedis.hset("cps.server." + serviceId.getName(), "gameState", gameState.toString());
+        }
     }
 
     public cpsGame getCurrentGame() {
@@ -166,6 +214,22 @@ public class GameManager extends cpsModule {
         return wasInGame;
     }
 
+    public boolean isEventMode() {
+        return eventMode;
+    }
+
+    public void setEventMode(boolean eventMode) {
+        this.eventMode = eventMode;
+    }
+
+    public HashMap<Player, EventStaffType> getEventStaff() {
+        return eventStaff;
+    }
+
+    public EventsManager getEventsManager() {
+        return eventsManager;
+    }
+
     public HashMap<Player, GameKit> getPlayerKit() {
         return playerKit;
     }
@@ -184,6 +248,8 @@ public class GameManager extends cpsModule {
         //Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(getPlugin(), new PerMilliRunnable(getPlugin()), 0, 1);
         setGameState(GameState.WAITING);
         startWaiting();
+        if (StatManager.getInstance().isLevels())
+            StatManager.getInstance().setTopPlayerUUID(StatManager.getInstance().getTopLevel());
     }
 
     public void startWaiting() {
@@ -205,9 +271,10 @@ public class GameManager extends cpsModule {
         for (Player p : Bukkit.getServer().getOnlinePlayers()) {
             p.hidePlayer(player);
         }
+        player.teleport(new Location(getCurrentGame().getGameWorld(), 0, 100, 0));
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onRespawn(PlayerRespawnEvent event) {
         if (specAfterRespawn.contains(event.getPlayer())) {
             specAfterRespawn.remove(event.getPlayer());
@@ -283,6 +350,17 @@ public class GameManager extends cpsModule {
             getPlugin().getServer().broadcastMessage("§eWe have reached the minimum amount of player's required start!");
             new StartRunnable(60, getCurrentGame().getStartBarMessage()).runTaskTimerAsynchronously(getPlugin(), 0 , 20);
         }
+
+        if (isEventMode()) {
+            Centered.send(event.getPlayer(), "§8»§m--------------------§r§8«");
+            Centered.send(event.getPlayer(), "§d§l" + networkName + " EVENT");
+            event.getPlayer().sendMessage(" ");
+            Centered.send(event.getPlayer(), "Welcome to this event, today we are playing: §e" + getCurrentGame().getGameName());
+            Centered.send(event.getPlayer(), "Event Host §8» §e" + (EventsManager.host == null ? "No one!" : EventsManager.host.getName()));
+            Centered.send(event.getPlayer(), "§8»§m--------------------§r§8«");
+        }
+        if (StatManager.getInstance().isLevelHotbar())
+            StatManager.getInstance().setXpBar(event.getPlayer());
     }
 
     @EventHandler
@@ -304,6 +382,30 @@ public class GameManager extends cpsModule {
     private void lobbyScoreboard(Player player) {
         cpsScoreboard s = ScoreboardCentre.getInstance().getScoreboards().get(player);
 
+        if (isEventMode()) {
+            s.setTitle("§a§lEvent");
+            s.clear();
+            s.add("§8»§m--------------------§r§8«");
+            s.add("§aEvent Host §8» §f" + (EventsManager.host == null ? "No one! Run /setevent" : EventsManager.host.getName()));
+            s.add("§aGame §8» §f" + getCurrentGame().getGameName());
+            s.addEmpty();
+            if (StaffHub.getInstance().getInStaffMode().contains(player)) {
+                s.add("§cStaff Mode");
+                s.add("Vanish §8» " + (StaffHub.getInstance().getOption(StaffOptions.Vanish, player) ? "§aEnabled" : "§cDisabled"));
+                s.add("Anti-Game Chat §8» " + (StaffHub.getInstance().getOption(StaffOptions.GameChat, player) ? "§aEnabled" : "§cDisabled"));
+                s.addEmpty();
+            }
+            s.add("§ePlayers §8» §f" + getLivePlayers().size() + "/" + getCurrentGame().getMaxPlayers());
+            s.addEmpty();
+            s.add("§9Server §8» §f" + serverName);
+            s.add("§r§8»§m--------------------§r§8«");
+            if (!networkWeb.equalsIgnoreCase(""))
+                s.add("§b" + networkWeb);
+
+            s.apply();
+
+            return;
+        }
         s.setTitle(getCurrentGame().getScoreName());
         s.clear();
         s.add("§8»§m--------------------§r§8«");
@@ -313,9 +415,13 @@ public class GameManager extends cpsModule {
             s.add("Anti-Game Chat §8» " + (StaffHub.getInstance().getOption(StaffOptions.GameChat, player) ? "§aEnabled" : "§cDisabled"));
         } else {
             s.add("§aYour Stats");
-            for (GameStat stat : StatManager.getInstance().getAvailableStat().values()) {
-                PlayerStat playerStat = StatManager.getInstance().getPlayerStat(player);
-                s.add("§b" + stat.getDisplayName() + ": §f" + playerStat.getStat(stat));
+            if (StatManager.getInstance().getAvailableStat().size() >= 7) {
+                s.add("§fRun /stats to see your stats!");
+            } else {
+                for (GameStat stat : StatManager.getInstance().getAvailableStat().values()) {
+                    PlayerStat playerStat = StatManager.getInstance().getPlayerStat(player);
+                    s.add("§b" + stat.getDisplayName() + ": §f" + playerStat.getStat(stat));
+                }
             }
         }
         s.addEmpty();
@@ -323,7 +429,8 @@ public class GameManager extends cpsModule {
         s.addEmpty();
         s.add("§9Server §8» §f" + serverName);
         s.add("§r§8»§m--------------------§r§8«");
-        s.add("§bplay.CPS.me");
+        if (!networkWeb.equalsIgnoreCase(""))
+            s.add("§b" + networkWeb);
 
         s.apply();
     }

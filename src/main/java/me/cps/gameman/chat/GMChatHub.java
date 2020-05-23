@@ -7,10 +7,13 @@ permission to read this. if not, fuck off :)
 Copyright (c) IsGeorgeCurious 2020
 */
 
+import de.dytanic.cloudnet.driver.CloudNetDriver;
 import me.cps.gameman.GameManager;
 import me.cps.gameman.stat.StatManager;
 import me.cps.root.Rank;
 import me.cps.root.account.AccountHub;
+import me.cps.root.chat.AnnouncementHandler;
+import me.cps.root.chat.commands.AnnounceCommand;
 import me.cps.root.cpsModule;
 import me.cps.root.util.Message;
 import org.bukkit.Bukkit;
@@ -34,6 +37,8 @@ public class GMChatHub extends cpsModule {
         instance = this;
         this.displayPoints = displayPoints;
         registerSelf();
+        CloudNetDriver.getInstance().getEventManager().registerListener(new AnnouncementHandler());
+        registerCommand(new AnnounceCommand(null));
     }
 
     public static GMChatHub getInstance() {
@@ -69,17 +74,16 @@ public class GMChatHub extends cpsModule {
         String full = "";
         if (displayPoints)
             if (!GameManager.getInstance().getSpectators().contains(event.getPlayer()))
-                full = "§6[" + StatManager.getInstance().getPlayerStat(event.getPlayer()).getStat(StatManager.getInstance().getAvailableStat().get("Points")) + "] "
-                    + AccountHub.getInstance().getPlayers().get(event.getPlayer().getUniqueId()).getPrefix() + event.getPlayer().getDisplayName() + " " + ChatColor.WHITE + event.getMessage();
+                GameManager.getInstance().getCurrentGame().chatMessage(event.getPlayer(), event.getMessage(), true);
             else
-                full = "§6[" + StatManager.getInstance().getPlayerStat(event.getPlayer()).getStat(StatManager.getInstance().getAvailableStat().get("Points")) + "] "
-                        + "§7[SPEC] " + Rank.getRank(event.getPlayer().getUniqueId()).getColor() + event.getPlayer().getDisplayName() + " " + ChatColor.WHITE + event.getMessage();
+                full = "§7[SPECTATOR] " + Rank.getRank(event.getPlayer().getUniqueId()).getColor() + event.getPlayer().getDisplayName() + " " + ChatColor.WHITE + event.getMessage();
         else
             if (!GameManager.getInstance().getSpectators().contains(event.getPlayer()))
-                full = "" + Rank.getRank(event.getPlayer().getUniqueId()).getPrefix() + event.getPlayer().getDisplayName() + " " + ChatColor.WHITE + event.getMessage();
+                GameManager.getInstance().getCurrentGame().chatMessage(event.getPlayer(), event.getMessage(), false);
             else
-                full = "§7[SPEC] " + Rank.getRank(event.getPlayer().getUniqueId()).getPrefix() + event.getPlayer().getDisplayName() + " " + ChatColor.WHITE + event.getMessage();
-        Bukkit.broadcastMessage(full);
+                full = "§7[SPECTATOR] " + Rank.getRank(event.getPlayer().getUniqueId()).getPrefix() + event.getPlayer().getDisplayName() + " " + ChatColor.WHITE + event.getMessage();
+        if (!full.equalsIgnoreCase(""))
+            Bukkit.broadcastMessage(full);
     }
 
 
