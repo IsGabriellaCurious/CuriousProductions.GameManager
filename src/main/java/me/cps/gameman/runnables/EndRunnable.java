@@ -1,16 +1,8 @@
 package me.cps.gameman.runnables;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
-import me.cps.gameman.GameState;
 import me.cps.gameman.stat.StatManager;
-import me.cps.root.Rank;
+import me.cps.root.util.Rank;
 import me.cps.root.proxy.ProxyManager;
 import me.cps.root.util.PlaySound;
 import me.cps.root.util.center.Centered;
@@ -22,6 +14,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Curious Productions Game Manager
+ * End of Game Runnable
+ *
+ * Runs when the game ends. It gives stat, announces the winner, sends players to hub, kills the server, etc.
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-08
+ */
 public class EndRunnable extends BukkitRunnable {
 
     Player pWinner;

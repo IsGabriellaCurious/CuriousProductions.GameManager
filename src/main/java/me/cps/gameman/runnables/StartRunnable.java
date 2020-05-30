@@ -1,12 +1,5 @@
 package me.cps.gameman.runnables;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
 import me.cps.gameman.GameState;
 import me.cps.gameman.events.GameStartEvent;
@@ -20,6 +13,15 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+/**
+ * Curious Productions Game Manager
+ * Start/Countdown Runnable
+ *
+ * Runs the countdown, then fires all the needed methods and events to start a game
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-08
+ */
 public class StartRunnable extends BukkitRunnable {
 
     String message;
@@ -88,7 +90,15 @@ public class StartRunnable extends BukkitRunnable {
                 GameManager.getInstance().startSpecRun();
                 ScoreboardCentre.getInstance().resetCacheAll();
             });
+            boolean show = GameManager.getInstance().getCurrentGame().isShowTeamColour();
+            boolean custom = !GameManager.getInstance().getCurrentGame().getCustomPrefix().equals("");
+            if (show)
+                ScoreboardCentre.getInstance().updatePrefixes(ScoreboardCentre.UpdateAction.UPDATE);
             for (Player p : GameManager.getInstance().getLivePlayers()) {
+                if (show && !custom)
+                    ScoreboardCentre.getInstance().setPrefix(p, GameManager.getInstance().getPlayerTeams().get(p) + "", ScoreboardCentre.UpdateAction.UPDATE);
+                else if (show && custom)
+                    ScoreboardCentre.getInstance().setPrefix(p, GameManager.getInstance().getCurrentGame().getCustomPrefix(), ScoreboardCentre.UpdateAction.UPDATE);
                 p.setHealth(20);
                 p.setFoodLevel(20);
                 if (!GameManager.getInstance().isStats())

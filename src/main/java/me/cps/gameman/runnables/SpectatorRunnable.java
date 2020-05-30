@@ -1,18 +1,20 @@
 package me.cps.gameman.runnables;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
 import me.cps.gameman.GameState;
 import me.cps.root.util.ActionBar;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+/**
+ * Curious Productions Game Manager
+ * Spectator Runnable
+ *
+ * Shows a nice little action bar for all spectators.
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-10
+ */
 public class SpectatorRunnable extends BukkitRunnable {
 
     boolean reset = true;
@@ -33,7 +35,7 @@ public class SpectatorRunnable extends BukkitRunnable {
             if (time <= 4) {
                 ActionBar.send(p, "§7You are a Spectator");
             } else {
-                ActionBar.send(p, "§dWant §fmore points§d? §cDON'T QUIT §dunitl the game ends!");
+                ActionBar.send(p, "§dWant §fmore points§d? §cDON'T QUIT §dunitl the game ends!"); //TODO fully intergrate "Participants"
             }
         }
 

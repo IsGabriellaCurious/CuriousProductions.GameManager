@@ -1,17 +1,19 @@
 package me.cps.gameman.commands;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
-import me.cps.root.Rank;
+import me.cps.root.util.Rank;
 import me.cps.root.command.cpsCommand;
 import org.bukkit.entity.Player;
 
+/**
+ * Curious Productions Game Manager
+ * Location Command
+ *
+ * A way to get your location. This is mainly for debugging.
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-05-17
+ */
 public class LocationCommand extends cpsCommand<GameManager> {
 
     public LocationCommand(GameManager mod) {

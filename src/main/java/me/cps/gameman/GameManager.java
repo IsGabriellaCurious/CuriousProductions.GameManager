@@ -1,15 +1,7 @@
 package me.cps.gameman;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import de.dytanic.cloudnet.driver.service.ServiceId;
 import de.dytanic.cloudnet.wrapper.Wrapper;
-import me.cps.game.pvphub.PvPHub;
 import me.cps.gameman.chat.GMChatHub;
 import me.cps.gameman.commands.*;
 import me.cps.gameman.event.EventStaffType;
@@ -20,6 +12,9 @@ import me.cps.gameman.runnables.SpectatorRunnable;
 import me.cps.gameman.stat.GameStat;
 import me.cps.gameman.stat.PlayerStat;
 import me.cps.gameman.stat.StatManager;
+import me.cps.root.account.AccountHub;
+import me.cps.root.networkdata.NetworkDataHub;
+import me.cps.root.networkdata.ServerType;
 import me.cps.root.redis.RedisHub;
 import me.cps.root.scoreboard.ScoreboardCentre;
 import me.cps.root.scoreboard.cpsScoreboard;
@@ -28,11 +23,10 @@ import me.cps.root.staff.StaffModeUpdateEvent;
 import me.cps.root.staff.StaffOptionUpdateEvent;
 import me.cps.root.staff.StaffOptions;
 import me.cps.root.util.PerMilliEvent;
-import me.cps.root.util.PerMilliRunnable;
 import me.cps.gameman.runnables.StartRunnable;
 import me.cps.gameman.runnables.WaitingRunnable;
-import me.cps.root.Rank;
-import me.cps.root.cpsModule;
+import me.cps.root.util.Rank;
+import me.cps.root.util.cpsModule;
 import me.cps.root.proxy.ProxyManager;
 import me.cps.root.util.Message;
 import me.cps.root.util.center.Centered;
@@ -54,9 +48,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+/**
+ * Curious Productions Game Manager
+ * Game Manager Core
+ *
+ * The main manager for games. Control a lot of the game.
+ *
+ * @author  Gabriella Hotten
+ * @version 1.3.3
+ * @since   2020-04-07
+ */
 public class GameManager extends cpsModule {
 
     private static GameManager instance;
+    private static String gameManagerVersion = "1.0";
 
     public static boolean timerPaused = false;
     public static boolean forceStart = false;
@@ -99,13 +104,12 @@ public class GameManager extends cpsModule {
     private HashMap<Player, EventStaffType> eventStaff = new HashMap<>();
     public EventsManager eventsManager;
 
-    public GameManager(JavaPlugin plugin, cpsGame game, FileConfiguration config) {
-        super("Game Manager", plugin, "1.3.2", true);
+    public GameManager(JavaPlugin plugin, cpsGame game) {
+        super("Game Manager", plugin, "1.3.3", true);
         //PvPHub pvPHub = new PvPHub(plugin);
         instance = this;
-        this.config = config;
-        networkName = config.getString("networkName");
-        networkWeb = config.getString("networkWeb");
+        networkName = NetworkDataHub.getNetworkDataBase().getNetworkName();
+        networkWeb = NetworkDataHub.getNetworkDataBase().getNetworkWebsite();
         registerSelf();
         this.currentGame = game;
         serverName = serviceId.getName();
@@ -123,10 +127,18 @@ public class GameManager extends cpsModule {
             eventMode = true;
             eventsManager = new EventsManager(getPlugin(), this);
         }
+
+        Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+            NetworkDataHub.getInstance().checkForUpdates(ServerType.GAMEMANAGER, getGameManagerVersion());
+        }, 40);
     }
 
     //All the setter getters for the vars above.
 
+
+    public static String getGameManagerVersion() {
+        return gameManagerVersion;
+    }
 
     public static GameManager getInstance() {
         return instance;
@@ -289,6 +301,9 @@ public class GameManager extends cpsModule {
 
     @EventHandler
     public void playerPreJoin(AsyncPlayerPreLoginEvent event) {
+        if (StaffHub.getInstance().forceIsInStaffMode(AccountHub.getInstance().nameFromUUID(event.getUniqueId())))
+            return;
+
         if (getGameState() == GameState.DEAD || getGameState() == GameState.LOADING || getGameState() == GameState.ENDING) {
             event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "§cThis server is currently not in a joinable state.");
             return;
@@ -325,6 +340,8 @@ public class GameManager extends cpsModule {
         if (StaffHub.getInstance().getInStaffMode().contains(event.getPlayer())) {
             if (getGameState() == GameState.WAITING)
                 lobbyScoreboard(event.getPlayer());
+            else
+                makeSpectator(event.getPlayer(), false);
 
             event.setJoinMessage("");
 

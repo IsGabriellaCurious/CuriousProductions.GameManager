@@ -1,15 +1,17 @@
 package me.cps.gameman.events;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+/**
+ * Curious Productions Game Manager
+ * Game Start Event
+ *
+ * Fires when the game starts.
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-25
+ */
 public class GameStartEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();

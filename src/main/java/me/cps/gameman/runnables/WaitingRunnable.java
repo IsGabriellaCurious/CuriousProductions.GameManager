@@ -1,16 +1,19 @@
 package me.cps.gameman.runnables;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
+import me.cps.root.networkdata.NetworkDataHub;
 import me.cps.root.util.ActionBar;
 import org.bukkit.scheduler.BukkitRunnable;
 
+/**
+ * Curious Productions Game Manager
+ * Waiting to Start Runnable
+ *
+ * Runnable that shows action bars on your game and how many people needed to start
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-08
+ */
 public class WaitingRunnable extends BukkitRunnable {
 
     double time = 0;

@@ -1,12 +1,5 @@
 package me.cps.gameman;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import de.dytanic.cloudnet.wrapper.Wrapper;
 import me.cps.gameman.events.GameStartEvent;
 import me.cps.gameman.runnables.EndRunnable;
@@ -25,11 +18,20 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 
+/**
+ * Curious Productions Game Manager
+ * cpsGame Extension
+ *
+ * The heart of all games! All settings, scoreboards, events and more happen here.
+ * TODO: this class could do with a clean!
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-07
+ */
 public abstract class cpsGame implements Listener {
 
     private JavaPlugin plugin;
 
-    public Enum prestige;
 
     private String gameName;
     private String scoreName;
@@ -46,6 +48,8 @@ public abstract class cpsGame implements Listener {
     private HashMap<String, GameKit> kitNames = new HashMap<>();
 
     private boolean teamJoinMessage;
+    private boolean showTeamColour = true;
+    private String customPrefix = "";
 
     private Location hub;
     private World gameWorld;
@@ -91,6 +95,22 @@ public abstract class cpsGame implements Listener {
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
         ServerManager.getInstance().setMaxPlayers(Wrapper.getInstance().getServiceId().getName(), maxPlayers);
+    }
+
+    public boolean isShowTeamColour() {
+        return showTeamColour;
+    }
+
+    public void setShowTeamColour(boolean showTeamColour) {
+        this.showTeamColour = showTeamColour;
+    }
+
+    public String getCustomPrefix() {
+        return customPrefix;
+    }
+
+    public void setCustomPrefix(String customPrefix) {
+        this.customPrefix = customPrefix;
     }
 
     public abstract void addStats();

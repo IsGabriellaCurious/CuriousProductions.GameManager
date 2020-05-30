@@ -1,15 +1,8 @@
 package me.cps.gameman.stat;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
 import me.cps.root.account.AccountHub;
-import me.cps.root.cpsModule;
+import me.cps.root.util.cpsModule;
 import me.cps.root.util.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,12 +14,21 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Curious Productions Game Manager
+ * Stat Manager
+ *
+ * Manages stat, levels, xp, and more!
+ *
+ * @author  Gabriella Hotten
+ * @version 1.2
+ * @since   2020-04-09
+ */
 public class StatManager extends cpsModule {
 
     private static StatManager instance;
@@ -45,7 +47,7 @@ public class StatManager extends cpsModule {
     private String name;
 
     public StatManager(JavaPlugin plugin, boolean levels, double levelExponent, int levelBaseXP, boolean levelHotbar) {
-        super("[GM] Stat Manager", plugin, "1.1", true);
+        super("[GM] Stat Manager", plugin, "1.2", true);
         instance = this;
         registerSelf();
         this.levels = levels;

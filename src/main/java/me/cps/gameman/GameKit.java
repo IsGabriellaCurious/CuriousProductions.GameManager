@@ -1,15 +1,17 @@
 package me.cps.gameman;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+/**
+ * Curious Productions Game Manager
+ * Game Kit Extension
+ *
+ * Extension for all game kits. Must be registered inside the game class.
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-07
+ */
 public abstract class GameKit<Game extends cpsGame> {
 
     private Game game;

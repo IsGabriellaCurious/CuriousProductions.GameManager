@@ -1,15 +1,17 @@
 package me.cps.gameman.stat;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.cpsGame;
 import org.bukkit.Material;
 
+/**
+ * Curious Productions Game Manager
+ * Stat Manager - Game Start Extension
+ *
+ * Extension for all game stats. Must be registered inside the game class.
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-07
+ */
 public abstract class GameStat<Game extends cpsGame> {
 
     private String displayName;

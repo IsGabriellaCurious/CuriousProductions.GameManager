@@ -29,6 +29,10 @@
             <id>cloudnet-repo</id>
             <url>https://cloudnetservice.eu/repositories/</url>
         </repository>
+        <repository>
+            <id>janmm14-public</id>
+            <url>https://repo.janmm14.de/repository/public/</url>
+        </repository>
     </repositories>
 
     <properties>
@@ -37,6 +41,37 @@
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.comphenix.protocol</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>4.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>de.janmm14</groupId>
+            <artifactId>aac-api</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>

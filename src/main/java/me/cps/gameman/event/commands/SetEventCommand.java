@@ -1,19 +1,11 @@
 package me.cps.gameman.event.commands;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
 import me.cps.gameman.GameState;
 import me.cps.gameman.event.EventStaffType;
 import me.cps.gameman.event.EventsManager;
-import me.cps.root.Rank;
+import me.cps.root.util.Rank;
 import me.cps.root.command.cpsCommand;
-import me.cps.root.cpsModule;
 import me.cps.root.scoreboard.ScoreboardCentre;
 import me.cps.root.scoreboard.cpsScoreboard;
 import me.cps.root.util.Message;
@@ -23,6 +15,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
+/**
+ * Curious Productions Game Manager
+ * Events Manager - Set Event Command
+ *
+ * Switches your server into an event server.
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-28
+ */
 public class SetEventCommand extends cpsCommand<GameManager> {
 
 

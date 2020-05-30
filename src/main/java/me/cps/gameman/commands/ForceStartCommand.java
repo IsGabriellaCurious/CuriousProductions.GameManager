@@ -1,20 +1,22 @@
 package me.cps.gameman.commands;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
 import me.cps.gameman.GameState;
 import me.cps.gameman.runnables.StartRunnable;
-import me.cps.root.Rank;
+import me.cps.root.util.Rank;
 import me.cps.root.command.cpsCommand;
 import me.cps.root.util.Message;
 import org.bukkit.entity.Player;
 
+/**
+ * Curious Productions Game Manager
+ * Force Start Command
+ *
+ * A way to force the start countdown to begin.
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-05-08
+ */
 public class ForceStartCommand extends cpsCommand<GameManager> {
 
     public ForceStartCommand(GameManager mod) {

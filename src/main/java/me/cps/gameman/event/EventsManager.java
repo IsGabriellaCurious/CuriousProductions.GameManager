@@ -1,17 +1,9 @@
 package me.cps.gameman.event;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
 import me.cps.gameman.GameState;
-import me.cps.gameman.event.commands.SetEventCommand;
-import me.cps.root.Rank;
-import me.cps.root.cpsModule;
+import me.cps.root.util.Rank;
+import me.cps.root.util.cpsModule;
 import me.cps.root.util.Message;
 import me.cps.root.util.PlaySound;
 import me.cps.root.util.PlayerUtil;
@@ -24,9 +16,16 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
+/**
+ * Curious Productions Game Manager
+ * Events Manager
+ *
+ * Event commands, for them event hosts!
+ *
+ * @author  Gabriella Hotten
+ * @version 1.0-beta
+ * @since   2020-04-28
+ */
 public class EventsManager extends cpsModule {
 
     private GameManager gameManager;
@@ -34,7 +33,7 @@ public class EventsManager extends cpsModule {
     public static Player host;
 
     public EventsManager(JavaPlugin plugin, GameManager gameManager) {
-        super("Events Manager", plugin, "1.0-alpha", false);
+        super("Events Manager", plugin, "1.0-beta", false);
         this.gameManager = gameManager;
         registerSelf();
     }

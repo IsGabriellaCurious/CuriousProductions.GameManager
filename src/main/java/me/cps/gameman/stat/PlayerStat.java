@@ -1,18 +1,20 @@
 package me.cps.gameman.stat;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import me.cps.gameman.GameManager;
 import me.cps.root.util.Message;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 
+/**
+ * Curious Productions Game Manager
+ * Stat Manager - Player Stat Base
+ *
+ * Holds all the info about a player's stats.
+ *
+ * @author  Gabriella Hotten
+ * @since   2020-04-09
+ */
 public class PlayerStat {
 
     private Player player;
@@ -56,7 +58,20 @@ public class PlayerStat {
         return earnedStat;
     }
 
+    @Deprecated
     public void awardStat(GameStat stat, int amount) {
+        if (hashGetEarnedStat().containsKey(stat)) {
+            int i = amount + getEarnedStat().get(stat);
+            hashGetEarnedStat().remove(stat);
+            hashGetEarnedStat().put(stat, i);
+            hashGetCurrentStat().put(stat, i);
+        } else
+            hashGetEarnedStat().put(stat, amount);
+        Message.console("awared " + amount +" of " + stat.getDisplayName());
+    }
+
+    public void awardStat(String gameStat, int amount) {
+        GameStat stat = statManager.getAvailableStat().get(gameStat);
         if (hashGetEarnedStat().containsKey(stat)) {
             int i = amount + getEarnedStat().get(stat);
             hashGetEarnedStat().remove(stat);

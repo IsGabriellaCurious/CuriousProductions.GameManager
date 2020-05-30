@@ -1,20 +1,11 @@
 package me.cps.gameman.chat;
 
-/*
-Hi there! Pls no stealing, unless you were given express
-permission to read this. if not, fuck off :)
-
-Copyright (c) IsGeorgeCurious 2020
-*/
-
 import de.dytanic.cloudnet.driver.CloudNetDriver;
 import me.cps.gameman.GameManager;
-import me.cps.gameman.stat.StatManager;
-import me.cps.root.Rank;
-import me.cps.root.account.AccountHub;
+import me.cps.root.util.Rank;
 import me.cps.root.chat.AnnouncementHandler;
 import me.cps.root.chat.commands.AnnounceCommand;
-import me.cps.root.cpsModule;
+import me.cps.root.util.cpsModule;
 import me.cps.root.util.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,6 +16,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 
+/**
+ * Curious Productions Game Manager
+ * Game Manager Chat Hub
+ *
+ * A copy of Chat Hub made for games.
+ *
+ * @author  Gabriella Hotten
+ * @version 1.2
+ * @since   2020-04-09
+ */
 public class GMChatHub extends cpsModule {
 
     private static GMChatHub instance;
